@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>北韵晋创 · 文化积木智造 AR 演示</title>
 
-  <!-- A-Frame：3D 渲染框架 -->
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-  <!-- MindAR：网页 AR 图片追踪库（MIT 开源免费） -->
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
@@ -53,60 +51,81 @@
   </div>
 
   <!-- 底部提示条 -->
-  <div id="hint">📷 将手机摄像头对准追踪图</div>
+  <div id="hint">📷 将手机摄像头对准任意产品图</div>
 
   <!--
     ============================================================
-    ★★★ 你要替换的文件（共 2 个，都放在 assets/ 文件夹里）★★★
+    ★★★ 多产品配置说明 ★★★
 
-    ① 追踪文件 assets/card.mind
-       - 用你的积木成品高清照片，去 MindAR 官网编译器生成：
+    ① 追踪文件 assets/targets.mind
+       - 把你的所有产品图（建议 3~5 张）一次性拖到 MindAR 编译器：
          https://hiukim.github.io/mind-ar-js-doc/tools/compile
-       - 编译得到的 .mind 文件改名为 card.mind 直接覆盖
+       - 编译得到 targets.mind，放到 assets/ 下
+       - 图片在编译器里的**顺序** = 下面的 targetIndex 序号
 
-    ② 3D 模型 assets/model.glb
-       - Blender 里 File → Export → glTF 2.0 (.glb) 导出
-       - 模型要求：.glb 格式，10MB 以内，面数低一点手机才不卡
+    ② 3D 模型（和编译器里的图片顺序一一对应）
+       - model_01.glb → targetIndex: 0（编译器里第 1 张图）
+       - model_02.glb → targetIndex: 1（编译器里第 2 张图）
+       - model_03.glb → targetIndex: 2
+       - 以此类推
+       - 想加更多产品，复制下面的 <a-entity> 代码块继续往下加
 
-    ③（可选）标题文字 assets/title.png / subtitle.png
-       - 想换文字内容，让花花帮你重新生成两张透明 PNG
+    ③ 标题（可选，所有产品共用一套标题）
+       - assets/title.png / subtitle.png
+       - 想每个产品不同标题，给每个锚点单独配 <a-image>
     ============================================================
   -->
-  <a-scene mindar-image="imageTargetSrc: ./assets/card.mind; maxTrack: 1; filterMinCF: 0.1; filterBeta: 10" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+  <a-scene mindar-image="imageTargetSrc: ./assets/targets.mind; maxTrack: 1; filterMinCF: 0.1; filterBeta: 10" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
 
-    <!-- 摄像头画面 -->
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- 3D 模型预加载（assets/model.glb = 你的模型，覆盖即替换） -->
+    <!-- 预加载所有模型（有几款产品就加几条） -->
     <a-assets>
-      <a-asset-item id="model" src="./assets/model.glb"></a-asset-item>
+      <a-asset-item id="model-01" src="./assets/model_01.glb"></a-asset-item>
+      <!-- 更多产品继续加（先取消注释，再改 TOTAL）：
+      <a-asset-item id="model-02" src="./assets/model_02.glb"></a-asset-item>
+      <a-asset-item id="model-03" src="./assets/model_03.glb"></a-asset-item>
+      <a-asset-item id="model-04" src="./assets/model_04.glb"></a-asset-item>
+      <a-asset-item id="model-05" src="./assets/model_05.glb"></a-asset-item>
+      -->
     </a-assets>
 
-    <!--
-      ==========================================================
-      AR 内容：追踪到图片后，下面这些东西浮现在图片上方
-      ==========================================================
-      展示 = 你的 3D 模型（model.glb）+ 两行标题文字
-      改大小：scale="0.8 0.8 0.8" 里的三个数字（大=更大）
-      改位置：position="0 -0.1 0" 里第二个数字（上下）
-    -->
-    <a-entity id="anchor" mindar-image-target="targetIndex: 0">
-      <a-entity id="modelwrap" gltf-model="#model" scale="0.8 0.8 0.8" position="0 -0.1 0">
-        <!-- 整体缓慢旋转（动画），调 dur 可改速度 -->
+    <!-- ========== 产品 1：targetIndex 0 ========== -->
+    <a-entity id="anchor-0" mindar-image-target="targetIndex: 0">
+      <a-entity id="modelwrap-0" gltf-model="#model-01" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
-
-      <!-- 漂浮的说明文字（透明 PNG，不依赖外部字体，最稳） -->
       <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
       <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
 
+    <!--
+    ========== 想加更多产品？复制下面的代码块，改数字就行 ==========
+
+    产品 2（targetIndex: 1）：
+    <a-entity id="anchor-1" mindar-image-target="targetIndex: 1">
+      <a-entity id="modelwrap-1" gltf-model="#model-02" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+
+    产品 3（targetIndex: 2）：
+    <a-entity id="anchor-2" mindar-image-target="targetIndex: 2">
+      <a-entity id="modelwrap-2" gltf-model="#model-03" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+    ================================================================
+    -->
+
   </a-scene>
 
   <script>
-    // ============================================================
-    // 界面逻辑：加载完成 → 隐藏 loading；识别到图 → 提示条变色
-    // ============================================================
+    const TOTAL = 1;          // ← 改这里：你有几款产品就写几
     const loading = document.getElementById('loading');
     const hint = document.getElementById('hint');
     const btnLock = document.getElementById('btn-lock');
@@ -116,85 +135,114 @@
     });
 
     // ============================================================
-    // ★ 锁定模式：移开追踪图后 3D 内容固定在屏幕上不消失
-    //   原理：识别丢失时，把模型从"追踪锚点"里搬到场景根节点，
-    //   它就停在屏幕上最后的位置；重新识别到图再搬回去。
-    //   锁定状态下：单指左右滑 = 旋转模型，双指捏合 = 缩放模型
+    // 锁定模式（支持多产品，每个产品独立锁定）
     // ============================================================
     let locked = false;
+    let activeTarget = -1;      // 当前识别到的是哪个产品（-1 = 无）
+    let placedTarget = -1;      // 哪个产品的模型被 detach 到屏幕固定位置
     let hasFoundOnce = false;
-    let modelPlaced = false;   // 模型当前是否已搬到屏幕固定位置
+
     const sceneEl = document.querySelector('a-scene');
-    const anchorEl = document.getElementById('anchor');
-    const modelEl = document.getElementById('modelwrap');
+    const anchors = [], modelwraps = [];
+    for (let i = 0; i < TOTAL; i++) {
+      anchors[i] = document.getElementById('anchor-' + i);
+      modelwraps[i] = document.getElementById('modelwrap-' + i);
+    }
 
-    // 记录模型在锚点里的原始局部变换（搬回去时用）
-    const HOME_POS = '0 -0.1 0';
-    const HOME_SCALE = '0.8 0.8 0.8';
-
+    const HOME_POS = { x: 0, y: -0.1, z: 0 };
+    const HOME_SCALE = { x: 0.8, y: 0.8, z: 0.8 };
     const wp = new THREE.Vector3(), wq = new THREE.Quaternion(), ws = new THREE.Vector3();
 
-    function detachModel() {
-      if (modelPlaced || !modelEl.object3D) return;
-      const o = modelEl.object3D;
+    function detachModel(idx) {
+      const m = modelwraps[idx];
+      if (!m || !m.object3D) return;
+      const o = m.object3D;
+      if (o.parent === sceneEl.object3D) return;  // 已经在场景根了
       o.getWorldPosition(wp); o.getWorldQuaternion(wq); o.getWorldScale(ws);
       sceneEl.object3D.add(o);
       o.position.copy(wp); o.quaternion.copy(wq); o.scale.copy(ws);
       o.visible = true;
-      modelPlaced = true;
-    }
-    function attachModel() {
-      if (!modelPlaced) return;
-      const o = modelEl.object3D;
-      anchorEl.object3D.add(o);
-      o.position.set(0, -0.1, 0);
-      o.quaternion.identity();
-      o.scale.set(0.8, 0.8, 0.8);
-      modelPlaced = false;
     }
 
-    sceneEl.addEventListener('targetFound', () => {
-      hasFoundOnce = true;
-      if (locked) {
-        attachModel();           // 重新跟图走之前先搬回锚点
-        detachModel();           // 锁定模式下继续钉在屏幕上
-      }
-      hint.textContent = locked
-        ? '🔒 已锁定：单指旋转 · 双指缩放 · 移开图也不消失'
-        : '✅ 已识别！点上方「锁定」可固定模型';
-      hint.classList.add('tracked');
-      hint.classList.remove('locked');
-    });
-    sceneEl.addEventListener('targetLost', () => {
-      if (locked && hasFoundOnce) {
-        detachModel();
-        hint.textContent = '🔒 模型已锁定在屏幕上：单指旋转 · 双指缩放';
-        hint.classList.add('locked');
-        hint.classList.remove('tracked');
-      } else {
-        hint.textContent = '📷 请将摄像头对准追踪图';
-        hint.classList.remove('tracked');
-      }
-    });
+    function attachModel(idx) {
+      const m = modelwraps[idx];
+      if (!m || !m.object3D) return;
+      const o = m.object3D;
+      if (o.parent === anchors[idx].object3D) return;  // 已经在锚点里了
+      anchors[idx].object3D.add(o);
+      o.position.set(HOME_POS.x, HOME_POS.y, HOME_POS.z);
+      o.quaternion.identity();
+      o.scale.set(HOME_SCALE.x, HOME_SCALE.y, HOME_SCALE.z);
+    }
+
+    // 给每个锚点绑定事件
+    for (let i = 0; i < TOTAL; i++) {
+      anchors[i].addEventListener('targetFound', () => {
+        activeTarget = i;
+        hasFoundOnce = true;
+
+        // 如果当前有别的模型被 placed，先把它收回锚点（避免屏幕上有多个 detached 模型）
+        if (!locked && placedTarget !== -1 && placedTarget !== i) {
+          attachModel(placedTarget);
+          placedTarget = -1;
+        }
+
+        if (locked) {
+          // 锁定模式下：把当前识别到的模型也 detach 到屏幕
+          detachModel(i);
+          placedTarget = i;
+          hint.textContent = '🔒 已锁定：单指旋转 · 双指缩放 · 移开图也不消失';
+          hint.classList.add('locked'); hint.classList.remove('tracked');
+        } else {
+          hint.textContent = '✅ 已识别「产品 ' + (i + 1) + '」！点上方「锁定」可固定模型';
+          hint.classList.add('tracked'); hint.classList.remove('locked');
+        }
+      });
+
+      anchors[i].addEventListener('targetLost', () => {
+        if (activeTarget !== i) return;  // 不是当前活跃的，忽略
+        activeTarget = -1;
+
+        if (locked && hasFoundOnce) {
+          detachModel(i);
+          placedTarget = i;
+          hint.textContent = '🔒 模型已锁定在屏幕上：单指旋转 · 双指缩放';
+          hint.classList.add('locked'); hint.classList.remove('tracked');
+        } else {
+          hint.textContent = '📷 将手机摄像头对准任意产品图';
+          hint.classList.remove('tracked', 'locked');
+        }
+      });
+    }
 
     // 锁定开关
     btnLock.addEventListener('click', () => {
       locked = !locked;
       btnLock.textContent = locked ? '🔒 已锁定（点此解锁）' : '🔓 锁定（移开图不消失）';
       btnLock.classList.toggle('on', locked);
-      if (locked && hasFoundOnce) {
-        detachModel();
+
+      if (locked) {
+        // 锁定：把当前活跃的产品模型 detach 到屏幕
+        if (activeTarget !== -1) {
+          detachModel(activeTarget);
+          placedTarget = activeTarget;
+        }
         hint.textContent = '🔒 模型已锁定在屏幕上：单指旋转 · 双指缩放';
         hint.classList.add('locked'); hint.classList.remove('tracked');
       } else {
-        attachModel();
+        // 解锁：把 placed 的模型收回锚点
+        if (placedTarget !== -1) {
+          attachModel(placedTarget);
+          placedTarget = -1;
+        }
         hint.textContent = '🔓 已解锁，模型跟随追踪图移动';
         hint.classList.remove('locked');
       }
     });
 
     // ============================================================
-    // 锁定状态下的手势：单指滑动 = 绕竖直轴旋转；双指捏合 = 缩放
+    // 手势：单指滑动 = 旋转；双指捏合 = 缩放
+    // 只对 placedTarget（锁定在屏幕上的模型）生效
     // ============================================================
     let tLast = null, pinchLast = 0;
     function touchDist(e) {
@@ -203,21 +251,22 @@
       return Math.hypot(dx, dy);
     }
     document.addEventListener('touchstart', (e) => {
-      if (!locked || !modelPlaced) return;
+      if (placedTarget === -1) return;
       if (e.touches.length === 1) tLast = { x: e.touches[0].clientX };
       if (e.touches.length === 2) pinchLast = touchDist(e);
     }, { passive: true });
     document.addEventListener('touchmove', (e) => {
-      if (!locked || !modelPlaced) return;
-      const o = modelEl.object3D;
+      if (placedTarget === -1) return;
+      const o = modelwraps[placedTarget].object3D;
+      if (!o) return;
       if (e.touches.length === 1 && tLast !== null) {
         const dx = e.touches[0].clientX - tLast.x;
-        o.rotation.y += dx * 0.01;                    // 绕竖直轴旋转
+        o.rotation.y += dx * 0.01;
         tLast = { x: e.touches[0].clientX };
       } else if (e.touches.length === 2 && pinchLast > 0) {
         const d = touchDist(e);
         const k = Math.min(3, Math.max(0.2, o.scale.x * (d / pinchLast)));
-        o.scale.setScalar(k);                          // 放大缩小
+        o.scale.setScalar(k);
         pinchLast = d;
       }
     }, { passive: true });

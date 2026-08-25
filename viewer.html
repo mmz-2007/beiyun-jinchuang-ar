@@ -84,7 +84,7 @@
     // ---------- 加载模型（assets/model.glb，覆盖即替换） ----------
     let modelRoot = null;
     const DEFAULT_CAM = new THREE.Vector3(0, 1.4, 3.2);
-    new GLTFLoader().load('./assets/model.glb', (gltf) => {
+    new GLTFLoader().load('./assets/model_01.glb', (gltf) => {
       modelRoot = gltf.scene;
 
       // 自动归一化：不管模型原始多大，统一缩放到画面合适大小并居中
