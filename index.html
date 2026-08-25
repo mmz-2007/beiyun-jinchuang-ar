@@ -81,13 +81,13 @@
 
     <!-- 预加载所有模型（有几款产品就加几条） -->
     <a-assets>
+
       <a-asset-item id="model-01" src="./assets/model_01.glb"></a-asset-item>
-      <!-- 更多产品继续加（先取消注释，再改 TOTAL）：
       <a-asset-item id="model-02" src="./assets/model_02.glb"></a-asset-item>
       <a-asset-item id="model-03" src="./assets/model_03.glb"></a-asset-item>
       <a-asset-item id="model-04" src="./assets/model_04.glb"></a-asset-item>
       <a-asset-item id="model-05" src="./assets/model_05.glb"></a-asset-item>
-      -->
+      
     </a-assets>
 
     <!-- ========== 产品 1：targetIndex 0 ========== -->
@@ -99,17 +99,44 @@
       <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
 
-    <!--
-    ========== 想加更多产品？复制下面的代码块，改数字就行 ==========
-
-    产品 2（targetIndex: 1）：
-    <a-entity id="anchor-1" mindar-image-target="targetIndex: 1">
+    <!-- ========== 产品 2：targetIndex 1 ========== -->
+     <a-entity id="anchor-1" mindar-image-target="targetIndex: 1">
       <a-entity id="modelwrap-1" gltf-model="#model-02" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
       <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
       <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
+    
+    <!-- ========== 产品 3：targetIndex 2 ========== -->
+     <a-entity id="anchor-2" mindar-image-target="targetIndex: 2">
+      <a-entity id="modelwrap-2" gltf-model="#model-03" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+    
+        <!-- ========== 产品 4：targetIndex 3 ========== -->
+     <a-entity id="anchor-3" mindar-image-target="targetIndex: 3">
+      <a-entity id="modelwrap-3" gltf-model="#model-04" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+
+        <!-- ========== 产品 5：targetIndex 4 ========== -->
+     <a-entity id="anchor-4" mindar-image-target="targetIndex: 4">
+      <a-entity id="modelwrap-4" gltf-model="#model-05" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+    
+    <!--
+    ========== 想加更多产品？复制下面的代码块，改数字就行 ==========
 
     产品 3（targetIndex: 2）：
     <a-entity id="anchor-2" mindar-image-target="targetIndex: 2">
@@ -125,7 +152,7 @@
   </a-scene>
 
   <script>
-    const TOTAL = 1;          // ← 改这里：你有几款产品就写几
+    const TOTAL = 5;          // ← 改这里：你有几款产品就写几
     const loading = document.getElementById('loading');
     const hint = document.getElementById('hint');
     const btnLock = document.getElementById('btn-lock');
