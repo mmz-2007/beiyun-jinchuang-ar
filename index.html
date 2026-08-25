@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>北韵晋创 · 文化积木智造 AR 演示</title>
+
+  <!-- A-Frame：3D 渲染框架 -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <!-- MindAR：网页 AR 图片追踪库（MIT 开源免费） -->
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+    #loading {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: #101418; color: #e8e2d4; z-index: 100;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-size: 16px;
+      transition: opacity 0.5s;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    #hint {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: rgba(16,20,24,0.88); color: #fff;
+      padding: 10px 18px; border-radius: 999px; font-size: 14px;
+      z-index: 50; max-width: 90%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    #hint.tracked { background: rgba(47,125,74,0.92); }
+    #hint.locked { background: rgba(212,162,78,0.95); color: #101418; }
+    #bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+      display: flex; gap: 8px; padding: 12px 12px 0; justify-content: center; flex-wrap: wrap;
+    }
+    #bar a, #bar button {
+      background: rgba(30,38,46,0.92); color: #e8e2d4; border: 1px solid rgba(255,255,255,0.15);
+      padding: 8px 14px; border-radius: 999px; font-size: 13px; text-decoration: none; cursor: pointer;
+      backdrop-filter: blur(6px);
+    }
+    #bar a:active, #bar button:active { background: #d4a24e; color: #101418; }
+    #bar button.on { background: #d4a24e; color: #101418; border-color: #d4a24e; }
+  </style>
+</head>
+<body>
+
+  <!-- 加载动画 -->
+  <div id="loading">⏳ 正在加载 AR 引擎…</div>
+
+  <!-- 顶部操作条 -->
+  <div id="bar">
+    <button id="btn-lock">🔓 锁定（移开图不消失）</button>
+    <a href="./viewer.html">🖥 自由查看模式</a>
+  </div>
+
+  <!-- 底部提示条 -->
+  <div id="hint">📷 将手机摄像头对准追踪图</div>
+
+  <!--
+    ============================================================
+    ★★★ 你要替换的文件（共 2 个，都放在 assets/ 文件夹里）★★★
+
+    ① 追踪文件 assets/card.mind
+       - 用你的积木成品高清照片，去 MindAR 官网编译器生成：
+         https://hiukim.github.io/mind-ar-js-doc/tools/compile
+       - 编译得到的 .mind 文件改名为 card.mind 直接覆盖
+
+    ② 3D 模型 assets/model.glb
+       - Blender 里 File → Export → glTF 2.0 (.glb) 导出
+       - 模型要求：.glb 格式，10MB 以内，面数低一点手机才不卡
+
+    ③（可选）标题文字 assets/title.png / subtitle.png
+       - 想换文字内容，让花花帮你重新生成两张透明 PNG
+    ============================================================
+  -->
+  <a-scene mindar-image="imageTargetSrc: ./assets/card.mind; maxTrack: 1; filterMinCF: 0.1; filterBeta: 10" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+
+    <!-- 摄像头画面 -->
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <!-- 3D 模型预加载（assets/model.glb = 你的模型，覆盖即替换） -->
+    <a-assets>
+      <a-asset-item id="model" src="./assets/model.glb"></a-asset-item>
+    </a-assets>
+
+    <!--
+      ==========================================================
+      AR 内容：追踪到图片后，下面这些东西浮现在图片上方
+      ==========================================================
+      展示 = 你的 3D 模型（model.glb）+ 两行标题文字
+      改大小：scale="0.8 0.8 0.8" 里的三个数字（大=更大）
+      改位置：position="0 -0.1 0" 里第二个数字（上下）
+    -->
+    <a-entity id="anchor" mindar-image-target="targetIndex: 0">
+      <a-entity id="modelwrap" gltf-model="#model" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <!-- 整体缓慢旋转（动画），调 dur 可改速度 -->
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+
+      <!-- 漂浮的说明文字（透明 PNG，不依赖外部字体，最稳） -->
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+
+  </a-scene>
+
+  <script>
+    // ============================================================
+    // 界面逻辑：加载完成 → 隐藏 loading；识别到图 → 提示条变色
+    // ============================================================
+    const loading = document.getElementById('loading');
+    const hint = document.getElementById('hint');
+    const btnLock = document.getElementById('btn-lock');
+
+    window.addEventListener('load', () => {
+      setTimeout(() => loading.classList.add('hidden'), 3000);
+    });
+
+    // ============================================================
+    // ★ 锁定模式：移开追踪图后 3D 内容固定在屏幕上不消失
+    //   原理：识别丢失时，把模型从"追踪锚点"里搬到场景根节点，
+    //   它就停在屏幕上最后的位置；重新识别到图再搬回去。
+    //   锁定状态下：单指左右滑 = 旋转模型，双指捏合 = 缩放模型
+    // ============================================================
+    let locked = false;
+    let hasFoundOnce = false;
+    let modelPlaced = false;   // 模型当前是否已搬到屏幕固定位置
+    const sceneEl = document.querySelector('a-scene');
+    const anchorEl = document.getElementById('anchor');
+    const modelEl = document.getElementById('modelwrap');
+
+    // 记录模型在锚点里的原始局部变换（搬回去时用）
+    const HOME_POS = '0 -0.1 0';
+    const HOME_SCALE = '0.8 0.8 0.8';
+
+    const wp = new THREE.Vector3(), wq = new THREE.Quaternion(), ws = new THREE.Vector3();
+
+    function detachModel() {
+      if (modelPlaced || !modelEl.object3D) return;
+      const o = modelEl.object3D;
+      o.getWorldPosition(wp); o.getWorldQuaternion(wq); o.getWorldScale(ws);
+      sceneEl.object3D.add(o);
+      o.position.copy(wp); o.quaternion.copy(wq); o.scale.copy(ws);
+      o.visible = true;
+      modelPlaced = true;
+    }
+    function attachModel() {
+      if (!modelPlaced) return;
+      const o = modelEl.object3D;
+      anchorEl.object3D.add(o);
+      o.position.set(0, -0.1, 0);
+      o.quaternion.identity();
+      o.scale.set(0.8, 0.8, 0.8);
+      modelPlaced = false;
+    }
+
+    sceneEl.addEventListener('targetFound', () => {
+      hasFoundOnce = true;
+      if (locked) {
+        attachModel();           // 重新跟图走之前先搬回锚点
+        detachModel();           // 锁定模式下继续钉在屏幕上
+      }
+      hint.textContent = locked
+        ? '🔒 已锁定：单指旋转 · 双指缩放 · 移开图也不消失'
+        : '✅ 已识别！点上方「锁定」可固定模型';
+      hint.classList.add('tracked');
+      hint.classList.remove('locked');
+    });
+    sceneEl.addEventListener('targetLost', () => {
+      if (locked && hasFoundOnce) {
+        detachModel();
+        hint.textContent = '🔒 模型已锁定在屏幕上：单指旋转 · 双指缩放';
+        hint.classList.add('locked');
+        hint.classList.remove('tracked');
+      } else {
+        hint.textContent = '📷 请将摄像头对准追踪图';
+        hint.classList.remove('tracked');
+      }
+    });
+
+    // 锁定开关
+    btnLock.addEventListener('click', () => {
+      locked = !locked;
+      btnLock.textContent = locked ? '🔒 已锁定（点此解锁）' : '🔓 锁定（移开图不消失）';
+      btnLock.classList.toggle('on', locked);
+      if (locked && hasFoundOnce) {
+        detachModel();
+        hint.textContent = '🔒 模型已锁定在屏幕上：单指旋转 · 双指缩放';
+        hint.classList.add('locked'); hint.classList.remove('tracked');
+      } else {
+        attachModel();
+        hint.textContent = '🔓 已解锁，模型跟随追踪图移动';
+        hint.classList.remove('locked');
+      }
+    });
+
+    // ============================================================
+    // 锁定状态下的手势：单指滑动 = 绕竖直轴旋转；双指捏合 = 缩放
+    // ============================================================
+    let tLast = null, pinchLast = 0;
+    function touchDist(e) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      return Math.hypot(dx, dy);
+    }
+    document.addEventListener('touchstart', (e) => {
+      if (!locked || !modelPlaced) return;
+      if (e.touches.length === 1) tLast = { x: e.touches[0].clientX };
+      if (e.touches.length === 2) pinchLast = touchDist(e);
+    }, { passive: true });
+    document.addEventListener('touchmove', (e) => {
+      if (!locked || !modelPlaced) return;
+      const o = modelEl.object3D;
+      if (e.touches.length === 1 && tLast !== null) {
+        const dx = e.touches[0].clientX - tLast.x;
+        o.rotation.y += dx * 0.01;                    // 绕竖直轴旋转
+        tLast = { x: e.touches[0].clientX };
+      } else if (e.touches.length === 2 && pinchLast > 0) {
+        const d = touchDist(e);
+        const k = Math.min(3, Math.max(0.2, o.scale.x * (d / pinchLast)));
+        o.scale.setScalar(k);                          // 放大缩小
+        pinchLast = d;
+      }
+    }, { passive: true });
+    document.addEventListener('touchend', () => { tLast = null; pinchLast = 0; }, { passive: true });
+  </script>
+
+</body>
+</html>
