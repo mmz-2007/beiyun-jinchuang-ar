@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>北韵晋创 · AR 版本历史</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #101418; color: #e8e2d4;
+      min-height: 100vh; padding: 40px 16px;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    h1 { font-size: 26px; text-align: center; margin-bottom: 6px; letter-spacing: 2px; }
+    h1 span { color: #d4a24e; }
+    .sub { text-align: center; color: #8a9099; font-size: 13px; margin-bottom: 36px; }
+    .card {
+      background: #1a2129; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; padding: 20px 22px; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 18px;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: rgba(212,162,78,0.6); }
+    .badge {
+      flex-shrink: 0; width: 62px; height: 62px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 700; letter-spacing: 0.5px;
+    }
+    .b-current { background: linear-gradient(135deg, #d4a24e, #b8862f); color: #101418; }
+    .b-old { background: #263038; color: #c8cdd4; }
+    .info { flex: 1; min-width: 0; }
+    .info h2 { font-size: 16px; margin-bottom: 4px; }
+    .info .date { font-size: 12px; color: #8a9099; margin-bottom: 8px; }
+    .info p { font-size: 13px; color: #b8bec6; line-height: 1.6; }
+    .go {
+      flex-shrink: 0; display: inline-block; padding: 9px 18px;
+      background: #d4a24e; color: #101418; font-size: 13px; font-weight: 600;
+      text-decoration: none; border-radius: 999px; white-space: nowrap;
+    }
+    .go.ghost { background: transparent; border: 1px solid rgba(212,162,78,0.5); color: #d4a24e; }
+    .go:active { opacity: 0.8; }
+    .tag {
+      display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px;
+      background: rgba(212,162,78,0.15); color: #d4a24e; margin-left: 8px; vertical-align: 2px;
+    }
+    .footer { text-align: center; font-size: 12px; color: #6a7078; margin-top: 32px; line-height: 1.8; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>北韵晋创 <span>· AR 版本历史</span></h1>
+    <div class="sub">每个版本均为可独立访问的线上存档 · 点击卡片直达对应版本</div>
+
+    <!-- 当前版 -->
+    <div class="card">
+      <div class="badge b-current">当前</div>
+      <div class="info">
+        <h2>v1.3 自由查看模式升级<span class="tag">最新</span></h2>
+        <div class="date">2026-08-25 18:31 · commit e0b0421</div>
+        <p>自由查看模式（viewer.html）支持 5 款产品一键切换，按需加载缓存秒切；AR 扫描模式扫哪张图出哪个模型。</p>
+      </div>
+      <a class="go" href="./index.html">体验 →</a>
+    </div>
+
+    <!-- v1.2 -->
+    <div class="card">
+      <div class="badge b-old">v1.2</div>
+      <div class="info">
+        <h2>五款积木字多目标识别</h2>
+        <div class="date">2026-08-25 18:20 · commit ec6e14d</div>
+        <p>大同、关帝庙、介休、晋祠、临汾五张产品图合并编译为一个 targets.mind，一个二维码扫任意产品图出对应 3D 模型。</p>
+      </div>
+      <a class="go ghost" href="./v1.2/index.html">体验 →</a>
+    </div>
+
+    <!-- v1.1 -->
+    <div class="card">
+      <div class="badge b-old">v1.1</div>
+      <div class="info">
+        <h2>「大同」积木字模型上线</h2>
+        <div class="date">2026-08-25 17:13 · commit 3f1603e</div>
+        <p>模型由 222 零件积木树（4.06MB）替换为「大同」橙色积木字（854KB，2 零件），加载速度大幅提升。</p>
+      </div>
+      <a class="go ghost" href="./v1.1/index.html">体验 →</a>
+    </div>
+
+    <!-- v1.0 -->
+    <div class="card">
+      <div class="badge b-old">v1.0</div>
+      <div class="info">
+        <h2>首个可用版本</h2>
+        <div class="date">2026-08-25 16:06 · commit a1d2750</div>
+        <p>最小可用 demo：单目标识别 + 积木树模型 + 锁定模式（移开图不消失，单指旋转、双指缩放）。</p>
+      </div>
+      <a class="go ghost" href="./v1.0/index.html">体验 →</a>
+    </div>
+
+    <div class="footer">
+      北韵晋创——拼晋韵万象，AR见山西 · iCAN 智慧文创赛道<br>
+      迭代记录：5 次功能提交 · 均可在线回溯
+    </div>
+  </div>
+</body>
+</html>

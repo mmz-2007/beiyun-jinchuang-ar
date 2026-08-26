@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>北韵晋创 · 文化积木智造 AR 演示</title>
+
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+    #loading {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: #101418; color: #e8e2d4; z-index: 100;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-size: 16px;
+      transition: opacity 0.5s;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    #hint {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: rgba(16,20,24,0.88); color: #fff;
+      padding: 10px 18px; border-radius: 999px; font-size: 14px;
+      z-index: 50; max-width: 90%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    #hint.tracked { background: rgba(47,125,74,0.92); }
+    #hint.locked { background: rgba(212,162,78,0.95); color: #101418; }
+    #bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+      display: flex; gap: 8px; padding: 12px 12px 0; justify-content: center; flex-wrap: wrap;
+    }
+    #bar a, #bar button {
+      background: rgba(30,38,46,0.92); color: #e8e2d4; border: 1px solid rgba(255,255,255,0.15);
+      padding: 8px 14px; border-radius: 999px; font-size: 13px; text-decoration: none; cursor: pointer;
+      backdrop-filter: blur(6px);
+    }
+    #bar a:active, #bar button:active { background: #d4a24e; color: #101418; }
+    #bar button.on { background: #d4a24e; color: #101418; border-color: #d4a24e; }
+  </style>
+</head>
+<body>
+
+  <!-- 加载动画 -->
+  <div id="loading">⏳ 正在加载 AR 引擎…</div>
+
+  <!-- 顶部操作条 -->
+  <div id="bar">
+    <button id="btn-lock">🔓 锁定（移开图不消失）</button>
+    <a href="./viewer.html">🖥 自由查看模式</a>
+  </div>
+
+  <!-- 底部提示条 -->
+  <div id="hint">📷 将手机摄像头对准任意产品图</div>
+
+  <!--
+    ============================================================
+    ★★★ 多产品配置说明 ★★★
+
+    ① 追踪文件 assets/targets.mind
+       - 把你的所有产品图（建议 3~5 张）一次性拖到 MindAR 编译器：
+         https://hiukim.github.io/mind-ar-js-doc/tools/compile
+       - 编译得到 targets.mind，放到 assets/ 下
+       - 图片在编译器里的**顺序** = 下面的 targetIndex 序号
+
+    ② 3D 模型（和编译器里的图片顺序一一对应）
+       - model_01.glb → targetIndex: 0（编译器里第 1 张图）
+       - model_02.glb → targetIndex: 1（编译器里第 2 张图）
+       - model_03.glb → targetIndex: 2
+       - 以此类推
+       - 想加更多产品，复制下面的 <a-entity> 代码块继续往下加
+
+    ③ 标题（可选，所有产品共用一套标题）
+       - assets/title.png / subtitle.png
+       - 想每个产品不同标题，给每个锚点单独配 <a-image>
+    ============================================================
+  -->
+  <a-scene mindar-image="imageTargetSrc: ./assets/targets.mind; maxTrack: 1; filterMinCF: 0.1; filterBeta: 10" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <!-- 预加载所有模型（有几款产品就加几条） -->
+    <a-assets>
+
+      <a-asset-item id="model-01" src="./assets/model_01.glb"></a-asset-item>
+      <a-asset-item id="model-02" src="./assets/model_02.glb"></a-asset-item>
+      <a-asset-item id="model-03" src="./assets/model_03.glb"></a-asset-item>
+      <a-asset-item id="model-04" src="./assets/model_04.glb"></a-asset-item>
+      <a-asset-item id="model-05" src="./assets/model_05.glb"></a-asset-item>
+      
+    </a-assets>
+
+    <!-- ========== 产品 1：targetIndex 0 ========== -->
+    <a-entity id="anchor-0" mindar-image-target="targetIndex: 0">
+      <a-entity id="modelwrap-0" gltf-model="#model-01" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+
+    <!-- ========== 产品 2：targetIndex 1 ========== -->
+     <a-entity id="anchor-1" mindar-image-target="targetIndex: 1">
+      <a-entity id="modelwrap-1" gltf-model="#model-02" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+    
+    <!-- ========== 产品 3：targetIndex 2 ========== -->
+     <a-entity id="anchor-2" mindar-image-target="targetIndex: 2">
+      <a-entity id="modelwrap-2" gltf-model="#model-03" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+    
+        <!-- ========== 产品 4：targetIndex 3 ========== -->
+     <a-entity id="anchor-3" mindar-image-target="targetIndex: 3">
+      <a-entity id="modelwrap-3" gltf-model="#model-04" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+
+        <!-- ========== 产品 5：targetIndex 4 ========== -->
+     <a-entity id="anchor-4" mindar-image-target="targetIndex: 4">
+      <a-entity id="modelwrap-4" gltf-model="#model-05" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+    
+    <!--
+    ========== 想加更多产品？复制下面的代码块，改数字就行 ==========
+
+    产品 3（targetIndex: 2）：
+    <a-entity id="anchor-2" mindar-image-target="targetIndex: 2">
+      <a-entity id="modelwrap-2" gltf-model="#model-03" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+    ================================================================
+    -->
+
+  </a-scene>
+
+  <script>
+    const TOTAL = 5;          // ← 改这里：你有几款产品就写几
+    const loading = document.getElementById('loading');
+    const hint = document.getElementById('hint');
+    const btnLock = document.getElementById('btn-lock');
+
+    window.addEventListener('load', () => {
+      setTimeout(() => loading.classList.add('hidden'), 3000);
+    });
+
+    // ============================================================
+    // 锁定模式（支持多产品，每个产品独立锁定）
+    // ============================================================
+    let locked = false;
+    let activeTarget = -1;      // 当前识别到的是哪个产品（-1 = 无）
+    let placedTarget = -1;      // 哪个产品的模型被 detach 到屏幕固定位置
+    let hasFoundOnce = false;
+
+    const sceneEl = document.querySelector('a-scene');
+    const anchors = [], modelwraps = [];
+    for (let i = 0; i < TOTAL; i++) {
+      anchors[i] = document.getElementById('anchor-' + i);
+      modelwraps[i] = document.getElementById('modelwrap-' + i);
+    }
+
+    const HOME_POS = { x: 0, y: -0.1, z: 0 };
+    const HOME_SCALE = { x: 0.8, y: 0.8, z: 0.8 };
+    const wp = new THREE.Vector3(), wq = new THREE.Quaternion(), ws = new THREE.Vector3();
+
+    function detachModel(idx) {
+      const m = modelwraps[idx];
+      if (!m || !m.object3D) return;
+      const o = m.object3D;
+      if (o.parent === sceneEl.object3D) return;  // 已经在场景根了
+      o.getWorldPosition(wp); o.getWorldQuaternion(wq); o.getWorldScale(ws);
+      sceneEl.object3D.add(o);
+      o.position.copy(wp); o.quaternion.copy(wq); o.scale.copy(ws);
+      o.visible = true;
+    }
+
+    function attachModel(idx) {
+      const m = modelwraps[idx];
+      if (!m || !m.object3D) return;
+      const o = m.object3D;
+      if (o.parent === anchors[idx].object3D) return;  // 已经在锚点里了
+      anchors[idx].object3D.add(o);
+      o.position.set(HOME_POS.x, HOME_POS.y, HOME_POS.z);
+      o.quaternion.identity();
+      o.scale.set(HOME_SCALE.x, HOME_SCALE.y, HOME_SCALE.z);
+    }
+
+    // 给每个锚点绑定事件
+    for (let i = 0; i < TOTAL; i++) {
+      anchors[i].addEventListener('targetFound', () => {
+        activeTarget = i;
+        hasFoundOnce = true;
+
+        // 如果当前有别的模型被 placed，先把它收回锚点（避免屏幕上有多个 detached 模型）
+        if (!locked && placedTarget !== -1 && placedTarget !== i) {
+          attachModel(placedTarget);
+          placedTarget = -1;
+        }
+
+        if (locked) {
+          // 锁定模式下：把当前识别到的模型也 detach 到屏幕
+          detachModel(i);
+          placedTarget = i;
+          hint.textContent = '🔒 已锁定：单指旋转 · 双指缩放 · 移开图也不消失';
+          hint.classList.add('locked'); hint.classList.remove('tracked');
+        } else {
+          hint.textContent = '✅ 已识别「产品 ' + (i + 1) + '」！点上方「锁定」可固定模型';
+          hint.classList.add('tracked'); hint.classList.remove('locked');
+        }
+      });
+
+      anchors[i].addEventListener('targetLost', () => {
+        if (activeTarget !== i) return;  // 不是当前活跃的，忽略
+        activeTarget = -1;
+
+        if (locked && hasFoundOnce) {
+          detachModel(i);
+          placedTarget = i;
+          hint.textContent = '🔒 模型已锁定在屏幕上：单指旋转 · 双指缩放';
+          hint.classList.add('locked'); hint.classList.remove('tracked');
+        } else {
+          hint.textContent = '📷 将手机摄像头对准任意产品图';
+          hint.classList.remove('tracked', 'locked');
+        }
+      });
+    }
+
+    // 锁定开关
+    btnLock.addEventListener('click', () => {
+      locked = !locked;
+      btnLock.textContent = locked ? '🔒 已锁定（点此解锁）' : '🔓 锁定（移开图不消失）';
+      btnLock.classList.toggle('on', locked);
+
+      if (locked) {
+        // 锁定：把当前活跃的产品模型 detach 到屏幕
+        if (activeTarget !== -1) {
+          detachModel(activeTarget);
+          placedTarget = activeTarget;
+        }
+        hint.textContent = '🔒 模型已锁定在屏幕上：单指旋转 · 双指缩放';
+        hint.classList.add('locked'); hint.classList.remove('tracked');
+      } else {
+        // 解锁：把 placed 的模型收回锚点
+        if (placedTarget !== -1) {
+          attachModel(placedTarget);
+          placedTarget = -1;
+        }
+        hint.textContent = '🔓 已解锁，模型跟随追踪图移动';
+        hint.classList.remove('locked');
+      }
+    });
+
+    // ============================================================
+    // 手势：单指滑动 = 旋转；双指捏合 = 缩放
+    // 只对 placedTarget（锁定在屏幕上的模型）生效
+    // ============================================================
+    let tLast = null, pinchLast = 0;
+    function touchDist(e) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      return Math.hypot(dx, dy);
+    }
+    document.addEventListener('touchstart', (e) => {
+      if (placedTarget === -1) return;
+      if (e.touches.length === 1) tLast = { x: e.touches[0].clientX };
+      if (e.touches.length === 2) pinchLast = touchDist(e);
+    }, { passive: true });
+    document.addEventListener('touchmove', (e) => {
+      if (placedTarget === -1) return;
+      const o = modelwraps[placedTarget].object3D;
+      if (!o) return;
+      if (e.touches.length === 1 && tLast !== null) {
+        const dx = e.touches[0].clientX - tLast.x;
+        o.rotation.y += dx * 0.01;
+        tLast = { x: e.touches[0].clientX };
+      } else if (e.touches.length === 2 && pinchLast > 0) {
+        const d = touchDist(e);
+        const k = Math.min(3, Math.max(0.2, o.scale.x * (d / pinchLast)));
+        o.scale.setScalar(k);
+        pinchLast = d;
+      }
+    }, { passive: true });
+    document.addEventListener('touchend', () => { tLast = null; pinchLast = 0; }, { passive: true });
+  </script>
+
+</body>
+</html>

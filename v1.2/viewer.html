@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>北韵晋创 · 3D 自由查看模式</title>
+
+  <!-- three.js（用 importmap 方式加载，CDN 免费开源） -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <style>
+    body { margin: 0; overflow: hidden; font-family: "PingFang SC","Microsoft YaHei",sans-serif; background: #101418; }
+    #hint {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(16,20,24,0.85); color: #fff;
+      padding: 8px 16px; border-radius: 999px; font-size: 13px; z-index: 50;
+      max-width: 92%; text-align: center;
+    }
+    #bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+      display: flex; gap: 8px; padding: 12px 12px 0; justify-content: center; flex-wrap: wrap;
+    }
+    #bar a, #bar button {
+      background: rgba(30,38,46,0.92); color: #e8e2d4; border: 1px solid rgba(255,255,255,0.15);
+      padding: 8px 14px; border-radius: 999px; font-size: 13px; text-decoration: none; cursor: pointer;
+      backdrop-filter: blur(6px);
+    }
+    #bar a:active, #bar button:active { background: #d4a24e; color: #101418; }
+    #loading {
+      position: fixed; inset: 0; background: #101418; color: #e8e2d4; z-index: 100;
+      display: flex; align-items: center; justify-content: center; font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loading">⏳ 正在加载 3D 模型…</div>
+
+  <div id="bar">
+    <a href="./index.html">📷 返回 AR 扫描</a>
+    <button id="btn-rotate">🔄 自动旋转：开</button>
+    <button id="btn-reset">🎯 复位视角</button>
+  </div>
+
+  <div id="hint">单指旋转 · 双指缩放/平移 · 模型已固定，不再需要追踪图</div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ---------- 场景基础 ----------
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x101418);
+
+    const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.01, 100);
+    camera.position.set(0, 1.4, 3.2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // ---------- 灯光（让积木颜色好看） ----------
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.2));
+    const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(3, 5, 4); scene.add(key);
+    const fill = new THREE.DirectionalLight(0xffeecc, 0.6); fill.position.set(-4, 2, -3); scene.add(fill);
+
+    // ---------- 轨道控制器：单指旋转 / 双指缩放平移 ----------
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.target.set(0, 0.2, 0);
+    controls.minDistance = 0.8;
+    controls.maxDistance = 12;
+
+    // ---------- 加载模型（assets/model.glb，覆盖即替换） ----------
+    let modelRoot = null;
+    const DEFAULT_CAM = new THREE.Vector3(0, 1.4, 3.2);
+    new GLTFLoader().load('./assets/model_01.glb', (gltf) => {
+      modelRoot = gltf.scene;
+
+      // 自动归一化：不管模型原始多大，统一缩放到画面合适大小并居中
+      const box = new THREE.Box3().setFromObject(modelRoot);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const s = 2.2 / maxDim;
+      modelRoot.scale.setScalar(s);
+      modelRoot.position.set(-center.x*s, -box.min.y*s, -center.z*s); // 落在原点、贴地
+
+      scene.add(modelRoot);
+      document.getElementById('loading').remove();
+      animate();
+    }, undefined, () => {
+      document.getElementById('loading').textContent = '❌ 模型加载失败，请检查 assets/model.glb 是否存在';
+    });
+
+    // ---------- 自动旋转开关 ----------
+    let autoRotate = true;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 2.0;
+    document.getElementById('btn-rotate').addEventListener('click', (e) => {
+      autoRotate = !autoRotate;
+      controls.autoRotate = autoRotate;
+      e.target.textContent = autoRotate ? '🔄 自动旋转：开' : '⏸ 自动旋转：关';
+    });
+
+    // ---------- 复位视角 ----------
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      camera.position.copy(DEFAULT_CAM);
+      controls.target.set(0, 0.2, 0);
+    });
+
+    // ---------- 渲染循环 ----------
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+  </script>
+
+</body>
+</html>
