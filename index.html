@@ -232,12 +232,63 @@
 
   <script>
     const TOTAL = 13;         // ← 改这里：你有几款产品就写几
+    const sceneEl = document.querySelector('a-scene');
     const loading = document.getElementById('loading');
     const hint = document.getElementById('hint');
     const btnLock = document.getElementById('btn-lock');
 
     window.addEventListener('load', () => {
       setTimeout(() => loading.classList.add('hidden'), 3000);
+    });
+
+    // ============================================================
+    // 模型清理：隐藏辅助 Cube 节点 + 自动居中（一次性，所有产品通用）
+    // ============================================================
+    function normalizeModel(idx) {
+      const o = modelwraps[idx].object3D;
+      if (!o) return;
+      // 1) 隐藏 Studio/Blender 导出的辅助立方体和场景根节点
+      o.traverse(child => {
+        const n = (child.name || '').toLowerCase();
+        if (n === 'cube' || n === 'x' || n === 'object' || n === 'scene') {
+          child.visible = false;
+        }
+      });
+      // 2) 用包围盒把模型几何中心对齐到原点（修复"主体偏出视线"问题）
+      const box = new THREE.Box3().setFromObject(o);
+      if (isFinite(box.min.x) && isFinite(box.max.x)) {
+        const center = box.getCenter(new THREE.Vector3());
+        // 把子节点整体平移，让中心落在 modelwrap 原点
+        o.children.forEach(ch => {
+          ch.position.x -= center.x;
+          ch.position.y -= center.y;
+          ch.position.z -= center.z;
+        });
+        // 顺便把太小的模型整体放大、太大的缩小（统一画面比例感）
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+        const target = 1.0;   // 目标最大维度 1 米
+        if (Math.abs(maxDim - target) > 0.1) {
+          const s = target / maxDim;
+          o.scale.multiplyScalar(s);
+        }
+      }
+    }
+
+    sceneEl.addEventListener('loaded', () => {
+      // 等所有模型完全加载再统一处理
+      setTimeout(() => {
+        for (let i = 0; i < TOTAL; i++) {
+          if (modelwraps[i] && modelwraps[i].object3D) {
+            // 等 GLB 加载完成（模型有 mesh 时才清理）
+            if (modelwraps[i].object3D.children.length > 0) {
+              normalizeModel(i);
+            } else {
+              setTimeout(() => normalizeModel(i), 300);
+            }
+          }
+        }
+      }, 500);
     });
 
     // ============================================================
@@ -248,7 +299,6 @@
     let placedTarget = -1;      // 哪个产品的模型被 detach 到屏幕固定位置
     let hasFoundOnce = false;
 
-    const sceneEl = document.querySelector('a-scene');
     const anchors = [], modelwraps = [];
     for (let i = 0; i < TOTAL; i++) {
       anchors[i] = document.getElementById('anchor-' + i);
@@ -347,18 +397,41 @@
     });
 
     // ============================================================
-    // 手势：单指滑动 = 旋转；双指捏合 = 缩放
+    // 手势：单指滑动 = 360° 旋转（上下左右均可）；双指捏合 = 缩放
     // 只对 placedTarget（锁定在屏幕上的模型）生效
     // ============================================================
+    const PITCH_LIMIT = Math.PI / 3;   // 上下旋转最多 ±60°，防止翻过头变倒立
     let tLast = null, pinchLast = 0;
     function touchDist(e) {
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       return Math.hypot(dx, dy);
     }
+    // 鼠标拖动支持（电脑/平板看效果）
+    let mouseDrag = false, mouseLast = null;
+    document.addEventListener('mousedown', (e) => {
+      if (placedTarget === -1) return;
+      mouseDrag = true;
+      mouseLast = { x: e.clientX, y: e.clientY };
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!mouseDrag || placedTarget === -1) return;
+      const o = modelwraps[placedTarget].object3D;
+      if (!o || !mouseLast) return;
+      const dx = e.clientX - mouseLast.x;
+      const dy = e.clientY - mouseLast.y;
+      o.rotation.y += dx * 0.01;
+      o.rotation.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, o.rotation.x + dy * 0.01));
+      mouseLast = { x: e.clientX, y: e.clientY };
+    });
+    document.addEventListener('mouseup', () => { mouseDrag = false; mouseLast = null; });
+
     document.addEventListener('touchstart', (e) => {
       if (placedTarget === -1) return;
-      if (e.touches.length === 1) tLast = { x: e.touches[0].clientX };
+      if (e.touches.length === 1) tLast = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+      };
       if (e.touches.length === 2) pinchLast = touchDist(e);
     }, { passive: true });
     document.addEventListener('touchmove', (e) => {
@@ -367,8 +440,13 @@
       if (!o) return;
       if (e.touches.length === 1 && tLast !== null) {
         const dx = e.touches[0].clientX - tLast.x;
-        o.rotation.y += dx * 0.01;
-        tLast = { x: e.touches[0].clientX };
+        const dy = e.touches[0].clientY - tLast.y;
+        o.rotation.y += dx * 0.01;                                  // 左右 → 绕 Y 轴
+        o.rotation.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, o.rotation.x + dy * 0.01));   // 上下 → 绕 X 轴（限位防翻）
+        tLast = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY
+        };
       } else if (e.touches.length === 2 && pinchLast > 0) {
         const d = touchDist(e);
         const k = Math.min(3, Math.max(0.2, o.scale.x * (d / pinchLast)));
