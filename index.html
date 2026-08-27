@@ -242,56 +242,6 @@
     });
 
     // ============================================================
-    // 模型清理：隐藏辅助 Cube 节点 + 自动居中（一次性，所有产品通用）
-    // ============================================================
-    function normalizeModel(idx) {
-      const o = modelwraps[idx].object3D;
-      if (!o) return;
-      // 1) 隐藏 Studio/Blender 导出的辅助立方体和场景根节点
-      o.traverse(child => {
-        const n = (child.name || '').toLowerCase();
-        if (n === 'cube' || n === 'x' || n === 'object' || n === 'scene') {
-          child.visible = false;
-        }
-      });
-      // 2) 用包围盒把模型几何中心对齐到原点（修复"主体偏出视线"问题）
-      const box = new THREE.Box3().setFromObject(o);
-      if (isFinite(box.min.x) && isFinite(box.max.x)) {
-        const center = box.getCenter(new THREE.Vector3());
-        // 把子节点整体平移，让中心落在 modelwrap 原点
-        o.children.forEach(ch => {
-          ch.position.x -= center.x;
-          ch.position.y -= center.y;
-          ch.position.z -= center.z;
-        });
-        // 顺便把太小的模型整体放大、太大的缩小（统一画面比例感）
-        const size = box.getSize(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-        const target = 1.0;   // 目标最大维度 1 米
-        if (Math.abs(maxDim - target) > 0.1) {
-          const s = target / maxDim;
-          o.scale.multiplyScalar(s);
-        }
-      }
-    }
-
-    sceneEl.addEventListener('loaded', () => {
-      // 等所有模型完全加载再统一处理
-      setTimeout(() => {
-        for (let i = 0; i < TOTAL; i++) {
-          if (modelwraps[i] && modelwraps[i].object3D) {
-            // 等 GLB 加载完成（模型有 mesh 时才清理）
-            if (modelwraps[i].object3D.children.length > 0) {
-              normalizeModel(i);
-            } else {
-              setTimeout(() => normalizeModel(i), 300);
-            }
-          }
-        }
-      }, 500);
-    });
-
-    // ============================================================
     // 锁定模式（支持多产品，每个产品独立锁定）
     // ============================================================
     let locked = false;
