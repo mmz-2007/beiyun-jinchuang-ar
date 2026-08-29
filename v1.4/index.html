@@ -347,9 +347,10 @@
     });
 
     // ============================================================
-    // 手势：单指滑动 = 360° 旋转（上下左右全向无死角）；双指捏合 = 缩放
+    // 手势：单指滑动 = 360° 旋转（上下左右均可）；双指捏合 = 缩放
     // 只对 placedTarget（锁定在屏幕上的模型）生效
     // ============================================================
+    const PITCH_LIMIT = Math.PI / 3;   // 上下旋转最多 ±60°，防止翻过头变倒立
     let tLast = null, pinchLast = 0;
     function touchDist(e) {
       const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -370,7 +371,7 @@
       const dx = e.clientX - mouseLast.x;
       const dy = e.clientY - mouseLast.y;
       o.rotation.y += dx * 0.01;
-      o.rotation.x += dy * 0.01;   // 上下全向 360° 自由旋转
+      o.rotation.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, o.rotation.x + dy * 0.01));
       mouseLast = { x: e.clientX, y: e.clientY };
     });
     document.addEventListener('mouseup', () => { mouseDrag = false; mouseLast = null; });
@@ -391,7 +392,7 @@
         const dx = e.touches[0].clientX - tLast.x;
         const dy = e.touches[0].clientY - tLast.y;
         o.rotation.y += dx * 0.01;                                  // 左右 → 绕 Y 轴
-        o.rotation.x += dy * 0.01;                                  // 上下 → 绕 X 轴（360° 全向）
+        o.rotation.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, o.rotation.x + dy * 0.01));   // 上下 → 绕 X 轴（限位防翻）
         tLast = {
           x: e.touches[0].clientX,
           y: e.touches[0].clientY
