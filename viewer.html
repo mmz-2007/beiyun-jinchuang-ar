@@ -21,7 +21,7 @@
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
       background: rgba(16,20,24,0.85); color: #fff;
       padding: 8px 16px; border-radius: 999px; font-size: 13px; z-index: 50;
-      max-width: 92%; text-align: center;
+      max-width: 92%; text-align: center; transition: opacity 0.3s;
     }
     #bar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 60;
@@ -49,6 +49,86 @@
       position: fixed; inset: 0; background: #101418; color: #e8e2d4; z-index: 100;
       display: flex; align-items: center; justify-content: center; font-size: 15px;
     }
+
+    /* ============================================================
+       ★ v1.6 新增：底部产品信息面板（与 AR 扫描版同款）
+       ============================================================ */
+    #panel {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
+      background: rgba(16, 20, 24, 0.92);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(212,162,78,0.45);
+      border-radius: 20px 20px 0 0;
+      padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+      transform: translateY(110%);
+      transition: transform 0.45s cubic-bezier(0.22, 0.9, 0.32, 1);
+      max-height: 42vh; overflow-y: auto;
+    }
+    #panel.show { transform: translateY(0); }
+    #panel .grabber {
+      width: 42px; height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.25); margin: 0 auto 8px; cursor: pointer;
+    }
+    #panel .p-brand {
+      font-size: 11px; letter-spacing: 3px; color: #d4a24e;
+      text-align: center; margin-bottom: 5px;
+    }
+    #panel .p-name {
+      font-size: 19px; font-weight: 700; color: #f5f0e6;
+      text-align: center; margin-bottom: 4px;
+    }
+    #panel .p-tag {
+      display: block; width: fit-content; margin: 0 auto 8px;
+      font-size: 11px; color: #d4a24e; background: rgba(212,162,78,0.14);
+      border: 1px solid rgba(212,162,78,0.35);
+      padding: 2px 10px; border-radius: 999px;
+    }
+    #panel .p-brief {
+      font-size: 13px; color: #c8cdd4; line-height: 1.75;
+      text-align: justify; margin-bottom: 6px;
+    }
+    #panel .p-desc {
+      font-size: 13px; color: #9aa2ab; line-height: 1.75;
+      text-align: justify; display: none;
+      border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 8px; margin-top: 4px;
+    }
+    #panel .p-desc.show { display: block; }
+    #panel .p-btns {
+      display: flex; gap: 10px; margin-top: 10px; justify-content: center;
+    }
+    #panel .p-btns button {
+      flex: 1; max-width: 200px;
+      background: rgba(212,162,78,0.16); color: #d4a24e;
+      border: 1px solid rgba(212,162,78,0.5);
+      padding: 10px 12px; border-radius: 999px; font-size: 13.5px; font-weight: 600;
+      cursor: pointer;
+    }
+    #panel .p-btns button:active { background: #d4a24e; color: #101418; }
+    #panel .p-btns button.playing {
+      background: #d4a24e; color: #101418;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(212,162,78,0.5); }
+      50% { box-shadow: 0 0 0 8px rgba(212,162,78,0); }
+    }
+
+    /* ★ v1.6：积木颗粒浮动装饰 */
+    #deco {
+      position: fixed; inset: 0; z-index: 40;
+      pointer-events: none; overflow: hidden;
+      opacity: 1;
+    }
+    #deco .brick {
+      position: absolute; bottom: -60px;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp {
+      0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+      8%   { opacity: 0.22; }
+      85%  { opacity: 0.22; }
+      100% { transform: translateY(-115vh) rotate(340deg); opacity: 0; }
+    }
   </style>
 </head>
 <body>
@@ -59,6 +139,7 @@
     <a href="./index.html">📷 返回 AR 扫描</a>
     <button id="btn-rotate">🔄 自动旋转：开</button>
     <button id="btn-reset">🎯 复位视角</button>
+    <button id="btn-info">ℹ️ 产品介绍</button>
   </div>
 
   <!-- 产品切换条：点谁看谁（由代码自动生成按钮） -->
@@ -66,33 +147,64 @@
 
   <div id="hint">单指旋转 · 双指缩放/平移 · 点上方按钮切换产品</div>
 
+  <!-- v1.6：产品信息面板 -->
+  <div id="panel">
+    <div class="grabber" id="p-grabber" title="点击收起/展开"></div>
+    <div class="p-brand">北 韵 晋 创 · 文 化 积 木</div>
+    <div class="p-name" id="p-name">产品名称</div>
+    <div class="p-tag" id="p-tag">主题标签</div>
+    <div class="p-brief" id="p-brief">产品简介</div>
+    <div class="p-desc" id="p-desc">详细介绍</div>
+    <div class="p-btns">
+      <button id="btn-voice">🔊 语音介绍</button>
+      <button id="btn-more">查看更多 ⌄</button>
+    </div>
+  </div>
+
+  <!-- v1.6：积木颗粒浮动装饰 -->
+  <div id="deco" aria-hidden="true"></div>
+
   <script type="module">
     import * as THREE from 'three';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
     // ============================================================
-    // ★★★ 产品配置 ★★★
-    // 顺序必须和 AR 扫描模式（index.html）里的 targetIndex 一一对应：
-    //   产品 1 = 编译器第 1 张图 = model_01.glb
-    //   产品 2 = 编译器第 2 张图 = model_02.glb
-    //   以此类推……
-    // 想加产品：复制一行，把「名字」和「文件」改成自己的就行
+    // ★★★ v1.6 产品配置（与 index.html 的 PRODUCT_INFO 保持一致）★★★
+    //   name  —— 产品名（按钮文字 + 面板标题）
+    //   tag   —— 主题标签 / brief —— 一句话简介
+    //   desc  —— 详细介绍（查看更多）/ voice —— 语音播报文案
+    // 顺序必须和 AR 扫描模式（index.html）里的 targetIndex 一一对应
     // ============================================================
     const PRODUCTS = [
-      { name: '产品 1', file: './assets/model_01.glb' },
-      { name: '产品 2', file: './assets/model_02.glb' },
-      { name: '产品 3', file: './assets/model_03.glb' },
-      { name: '产品 4', file: './assets/model_04.glb' },
-      { name: '产品 5', file: './assets/model_05.glb' },
-      { name: '产品 6', file: './assets/model_06.glb' },
-      { name: '产品 7', file: './assets/model_07.glb' },
-      { name: '产品 8', file: './assets/model_08.glb' },
-      { name: '产品 9', file: './assets/model_09.glb' },
-      { name: '产品 10', file: './assets/model_10.glb' },
-      { name: '产品 11', file: './assets/model_11.glb' },
-      { name: '产品 12', file: './assets/model_12.glb' },
-      { name: '产品 13', file: './assets/model_13.glb' },
+      { name: '大同', file: './assets/model_01.glb', tag: '古都 · 云冈',
+        brief: '【占位】一句话简介：以北魏平城为原型……',
+        desc: '【占位】详细介绍：设计灵感、零件数、尺寸、文化内涵等，写在这里。点「查看更多」后展示。',
+        voice: '【占位】语音文案：这里是语音播报的完整内容，点击语音介绍按钮即可收听。' },
+      { name: '关帝庙', file: './assets/model_02.glb', tag: '古建 · 信义',
+        brief: '【占位】一句话简介……', desc: '【占位】详细介绍……', voice: '【占位】语音文案……' },
+      { name: '介休', file: './assets/model_03.glb', tag: '琉璃 · 后土',
+        brief: '【占位】一句话简介……', desc: '【占位】详细介绍……', voice: '【占位】语音文案……' },
+      { name: '晋祠', file: './assets/model_04.glb', tag: '古建 · 宋韵',
+        brief: '【占位】一句话简介……', desc: '【占位】详细介绍……', voice: '【占位】语音文案……' },
+      { name: '临汾', file: './assets/model_05.glb', tag: '表里 · 汾河',
+        brief: '【占位】一句话简介……', desc: '【占位】详细介绍……', voice: '【占位】语音文案……' },
+      { name: '产品 6', file: './assets/model_06.glb', tag: '待填 · 标签',
+        brief: '【占位】一句话简介……', desc: '【占位】详细介绍……', voice: '【占位】语音文案……' },
+      { name: '产品 7', file: './assets/model_07.glb', tag: '待填 · 标签',
+        brief: '【占位】一句话简介……', desc: '【占位】详细介绍……', voice: '【占位】语音文案……' },
+      { name: '产品 8', file: './assets/model_08.glb', tag: '待填 · 标签',
+        brief: '【占位】一句话简介……', desc: '【占位】详细介绍……', voice: '【占位】语音文案……' },
+      { name: '产品 9', file: './assets/model_09.glb', tag: '待填 · 标签',
+        brief: '【占位】一句话简介……', desc: '【占位】详细介绍……', voice: '【占位】语音文案……' },
+      { name: '产品 10', file: './assets/model_10.glb', tag: '待填 · 标签',
+        brief: '【占位】一句话简介……', desc: '【占位】详细介绍……', voice: '【占位】语音文案……' },
+      { name: '产品 11', file: './assets/model_11.glb', tag: '待填 · 标签',
+        brief: '【占位】一句话简介……', desc: '【占位】详细介绍……', voice: '【占位】语音文案……' },
+      { name: '产品 12', file: './assets/model_12.glb', tag: '待填 · 标签',
+        brief: '【占位】一句话简介……', desc: '【占位】详细介绍……', voice: '【占位】语音文案……' },
+      { name: '产品 13', file: './assets/model_13.glb', tag: '待填 · 标签',
+        brief: '【占位】一句话简介……', desc: '【占位】详细介绍……', voice: '【占位】语音文案……' },
     ];
 
     // ---------- 场景基础 ----------
@@ -126,6 +238,123 @@
     const loadingEl = document.getElementById('loading');
     let currentIdx = -1;
 
+    // ============================================================
+    // v1.6：信息面板 + 语音播报
+    // ============================================================
+    const panel = document.getElementById('panel');
+    const pName = document.getElementById('p-name');
+    const pTag = document.getElementById('p-tag');
+    const pBrief = document.getElementById('p-brief');
+    const pDesc = document.getElementById('p-desc');
+    const btnVoice = document.getElementById('btn-voice');
+    const btnMore = document.getElementById('btn-more');
+    const btnInfo = document.getElementById('btn-info');
+    const grabber = document.getElementById('p-grabber');
+    const hintEl = document.getElementById('hint');
+    let panelOpen = true;
+    let voicePlaying = false;
+
+    function showPanel(idx) {
+      const p = PRODUCTS[idx];
+      if (!p) return;
+      pName.textContent = p.name;
+      pTag.textContent = p.tag || '';
+      pBrief.textContent = p.brief || '';
+      pDesc.textContent = p.desc || '';
+      pDesc.classList.remove('show');
+      btnMore.textContent = '查看更多 ⌄';
+      panel.classList.add('show');
+      panelOpen = true;
+      hintEl.style.opacity = '0';
+    }
+
+    function hidePanel() {
+      panel.classList.remove('show');
+      panelOpen = false;
+      stopVoice();
+      hintEl.style.opacity = '1';
+    }
+
+    // 「产品介绍」按钮 / grabber 点击：切换显隐
+    btnInfo.addEventListener('click', () => {
+      if (panelOpen) hidePanel(); else showPanel(currentIdx === -1 ? 0 : currentIdx);
+    });
+    grabber.addEventListener('click', () => {
+      if (panelOpen) hidePanel(); else showPanel(currentIdx === -1 ? 0 : currentIdx);
+    });
+
+    // ---- 语音播报 ----
+    function stopVoice() {
+      voicePlaying = false;
+      btnVoice.classList.remove('playing');
+      btnVoice.textContent = '🔊 语音介绍';
+      try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
+    }
+
+    btnVoice.addEventListener('click', () => {
+      if (voicePlaying) { stopVoice(); return; }
+      const p = PRODUCTS[currentIdx];
+      if (!p || !p.voice) return;
+
+      if (!('speechSynthesis' in window)) {
+        btnVoice.textContent = '⚠️ 当前浏览器不支持语音';
+        setTimeout(() => { btnVoice.textContent = '🔊 语音介绍'; }, 2500);
+        return;
+      }
+      try {
+        const u = new SpeechSynthesisUtterance(p.voice);
+        u.lang = 'zh-CN';
+        u.rate = 0.95;
+        u.onend = () => stopVoice();
+        u.onerror = () => stopVoice();
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
+        voicePlaying = true;
+        btnVoice.classList.add('playing');
+        btnVoice.textContent = '⏹ 停止播放';
+      } catch (e) {
+        btnVoice.textContent = '⚠️ 语音播放失败';
+        setTimeout(() => { btnVoice.textContent = '🔊 语音介绍'; }, 2500);
+      }
+    });
+
+    // ---- 查看更多 ----
+    btnMore.addEventListener('click', () => {
+      const open = pDesc.classList.toggle('show');
+      btnMore.textContent = open ? '收起介绍 ⌃' : '查看更多 ⌄';
+    });
+
+    // ---- 积木颗粒浮动装饰 ----
+    (function buildDeco() {
+      const deco = document.getElementById('deco');
+      const colors = ['#d4a24e', '#b3473a', '#4a7d8c', '#c77b3b'];
+      const specs = [
+        { left: '6%',  size: 40, dur: 15, delay: 0 },
+        { left: '24%', size: 30, dur: 19, delay: 3.5 },
+        { left: '46%', size: 48, dur: 13, delay: 1.5 },
+        { left: '68%', size: 32, dur: 21, delay: 6 },
+        { left: '84%', size: 42, dur: 16, delay: 4 },
+        { left: '55%', size: 26, dur: 24, delay: 8 },
+      ];
+      specs.forEach((s, i) => {
+        const c = colors[i % colors.length];
+        const el = document.createElement('div');
+        el.className = 'brick';
+        el.style.left = s.left;
+        el.style.animationDuration = s.dur + 's';
+        el.style.animationDelay = s.delay + 's';
+        el.innerHTML =
+          '<svg width="' + s.size + '" height="' + Math.round(s.size * 0.62) + '" viewBox="0 0 64 40">' +
+          '<rect x="1" y="1" width="62" height="38" rx="7" fill="' + c + '" fill-opacity="0.9" stroke="rgba(0,0,0,0.25)" stroke-width="2"/>' +
+          '<circle cx="19" cy="20" r="8" fill="' + c + '" stroke="rgba(0,0,0,0.22)" stroke-width="2"/>' +
+          '<circle cx="45" cy="20" r="8" fill="' + c + '" stroke="rgba(0,0,0,0.22)" stroke-width="2"/>' +
+          '<circle cx="17" cy="18" r="2.5" fill="rgba(255,255,255,0.35)"/>' +
+          '<circle cx="43" cy="18" r="2.5" fill="rgba(255,255,255,0.35)"/>' +
+          '</svg>';
+        deco.appendChild(el);
+      });
+    })();
+
     // ---------- 加载并归一化模型（自动缩放居中、落地） ----------
     function loadModel(idx, onDone) {
       loadingEl.style.display = 'flex';
@@ -151,12 +380,16 @@
       });
     }
 
-    // ---------- 切换产品 ----------
+    // ---------- 切换产品（v1.6：同步更新信息面板 + 停止语音） ----------
     function showProduct(idx) {
       if (idx === currentIdx) return;
       // 先隐藏当前模型
       if (currentIdx !== -1 && cache[currentIdx]) cache[currentIdx].visible = false;
       currentIdx = idx;
+
+      // v1.6：切换产品时更新面板、停止上一段语音
+      stopVoice();
+      showPanel(idx);
 
       if (cache[idx]) {
         // 之前加载过：直接显示，秒切

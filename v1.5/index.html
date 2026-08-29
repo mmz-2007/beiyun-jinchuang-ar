@@ -23,7 +23,6 @@
       background: rgba(16,20,24,0.88); color: #fff;
       padding: 10px 18px; border-radius: 999px; font-size: 14px;
       z-index: 50; max-width: 90%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      transition: opacity 0.3s;
     }
     #hint.tracked { background: rgba(47,125,74,0.92); }
     #hint.locked { background: rgba(212,162,78,0.95); color: #101418; }
@@ -38,89 +37,6 @@
     }
     #bar a:active, #bar button:active { background: #d4a24e; color: #101418; }
     #bar button.on { background: #d4a24e; color: #101418; border-color: #d4a24e; }
-
-    /* ============================================================
-       ★ v1.6 新增：底部产品信息面板（Bottom Sheet）
-       ============================================================ */
-    #panel {
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 70;
-      background: rgba(16, 20, 24, 0.92);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(212,162,78,0.45);
-      border-radius: 20px 20px 0 0;
-      padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
-      transform: translateY(110%);
-      transition: transform 0.45s cubic-bezier(0.22, 0.9, 0.32, 1);
-      max-height: 46vh; overflow-y: auto;
-    }
-    #panel.show { transform: translateY(0); }
-    #panel .grabber {
-      width: 42px; height: 4px; border-radius: 2px;
-      background: rgba(255,255,255,0.25); margin: 0 auto 10px;
-    }
-    #panel .p-brand {
-      font-size: 11px; letter-spacing: 3px; color: #d4a24e;
-      text-align: center; margin-bottom: 6px;
-    }
-    #panel .p-name {
-      font-size: 20px; font-weight: 700; color: #f5f0e6;
-      text-align: center; margin-bottom: 4px;
-    }
-    #panel .p-tag {
-      display: block; width: fit-content; margin: 0 auto 10px;
-      font-size: 11px; color: #d4a24e; background: rgba(212,162,78,0.14);
-      border: 1px solid rgba(212,162,78,0.35);
-      padding: 2px 10px; border-radius: 999px;
-    }
-    #panel .p-brief {
-      font-size: 13px; color: #c8cdd4; line-height: 1.75;
-      text-align: justify; margin-bottom: 6px;
-    }
-    #panel .p-desc {
-      font-size: 13px; color: #9aa2ab; line-height: 1.75;
-      text-align: justify; display: none;
-      border-top: 1px dashed rgba(255,255,255,0.12); padding-top: 8px; margin-top: 4px;
-    }
-    #panel .p-desc.show { display: block; }
-    #panel .p-btns {
-      display: flex; gap: 10px; margin-top: 12px; justify-content: center;
-    }
-    #panel .p-btns button {
-      flex: 1; max-width: 200px;
-      background: rgba(212,162,78,0.16); color: #d4a24e;
-      border: 1px solid rgba(212,162,78,0.5);
-      padding: 10px 12px; border-radius: 999px; font-size: 13.5px; font-weight: 600;
-      cursor: pointer;
-    }
-    #panel .p-btns button:active { background: #d4a24e; color: #101418; }
-    #panel .p-btns button.playing {
-      background: #d4a24e; color: #101418;
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(212,162,78,0.5); }
-      50% { box-shadow: 0 0 0 8px rgba(212,162,78,0); }
-    }
-
-    /* ============================================================
-       ★ v1.6 新增：积木主题浮动装饰（山西·积木颗粒缓缓上浮）
-       ============================================================ */
-    #deco {
-      position: fixed; inset: 0; z-index: 40;
-      pointer-events: none; overflow: hidden;
-      opacity: 0; transition: opacity 1.2s;
-    }
-    #deco.show { opacity: 1; }
-    #deco .brick {
-      position: absolute; bottom: -60px;
-      animation: floatUp linear infinite;
-    }
-    @keyframes floatUp {
-      0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
-      8%   { opacity: 0.28; }
-      85%  { opacity: 0.28; }
-      100% { transform: translateY(-115vh) rotate(340deg); opacity: 0; }
-    }
   </style>
 </head>
 <body>
@@ -137,23 +53,6 @@
   <!-- 底部提示条 -->
   <div id="hint">📷 将手机摄像头对准任意产品图</div>
 
-  <!-- v1.6：产品信息面板（识别到产品后从底部滑出） -->
-  <div id="panel">
-    <div class="grabber"></div>
-    <div class="p-brand">北 韵 晋 创 · 文 化 积 木</div>
-    <div class="p-name" id="p-name">产品名称</div>
-    <div class="p-tag" id="p-tag">主题标签</div>
-    <div class="p-brief" id="p-brief">产品简介</div>
-    <div class="p-desc" id="p-desc">详细介绍</div>
-    <div class="p-btns">
-      <button id="btn-voice">🔊 语音介绍</button>
-      <button id="btn-more">查看更多 ⌄</button>
-    </div>
-  </div>
-
-  <!-- v1.6：积木颗粒浮动装饰 -->
-  <div id="deco" aria-hidden="true"></div>
-
   <!--
     ============================================================
     ★★★ 多产品配置说明 ★★★
@@ -166,9 +65,16 @@
 
     ② 3D 模型（和编译器里的图片顺序一一对应）
        - model_01.glb → targetIndex: 0（编译器里第 1 张图）
+       - model_02.glb → targetIndex: 1（编译器里第 2 张图）
+       - model_03.glb → targetIndex: 2
        - 以此类推
-  -->
+       - 想加更多产品，复制下面的 <a-entity> 代码块继续往下加
 
+    ③ 标题（可选，所有产品共用一套标题）
+       - assets/title.png / subtitle.png
+       - 想每个产品不同标题，给每个锚点单独配 <a-image>
+    ============================================================
+  -->
   <a-scene mindar-image="imageTargetSrc: ./assets/targets.mind; maxTrack: 1; filterMinCF: 0.1; filterBeta: 10" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -189,7 +95,7 @@
       <a-asset-item id="model-11" src="./assets/model_11.glb"></a-asset-item>
       <a-asset-item id="model-12" src="./assets/model_12.glb"></a-asset-item>
       <a-asset-item id="model-13" src="./assets/model_13.glb"></a-asset-item>
-
+      
     </a-assets>
 
     <!-- ========== 产品 1：targetIndex 0 ========== -->
@@ -197,277 +103,139 @@
       <a-entity id="modelwrap-0" gltf-model="#model-01" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
 
     <!-- ========== 产品 2：targetIndex 1 ========== -->
-    <a-entity id="anchor-1" mindar-image-target="targetIndex: 1">
+     <a-entity id="anchor-1" mindar-image-target="targetIndex: 1">
       <a-entity id="modelwrap-1" gltf-model="#model-02" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
-
+    
     <!-- ========== 产品 3：targetIndex 2 ========== -->
-    <a-entity id="anchor-2" mindar-image-target="targetIndex: 2">
+     <a-entity id="anchor-2" mindar-image-target="targetIndex: 2">
       <a-entity id="modelwrap-2" gltf-model="#model-03" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
-
-    <!-- ========== 产品 4：targetIndex 3 ========== -->
-    <a-entity id="anchor-3" mindar-image-target="targetIndex: 3">
+    
+        <!-- ========== 产品 4：targetIndex 3 ========== -->
+     <a-entity id="anchor-3" mindar-image-target="targetIndex: 3">
       <a-entity id="modelwrap-3" gltf-model="#model-04" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
 
-    <!-- ========== 产品 5：targetIndex 4 ========== -->
-    <a-entity id="anchor-4" mindar-image-target="targetIndex: 4">
+        <!-- ========== 产品 5：targetIndex 4 ========== -->
+     <a-entity id="anchor-4" mindar-image-target="targetIndex: 4">
       <a-entity id="modelwrap-4" gltf-model="#model-05" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
-
-    <!-- ========== 产品 6：targetIndex 5 ========== -->
+    
+        <!-- ========== 产品 6：targetIndex 5 ========== -->
     <a-entity id="anchor-5" mindar-image-target="targetIndex: 5">
       <a-entity id="modelwrap-5" gltf-model="#model-06" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
 
     <!-- ========== 产品 7：targetIndex 6 ========== -->
-    <a-entity id="anchor-6" mindar-image-target="targetIndex: 6">
+     <a-entity id="anchor-6" mindar-image-target="targetIndex: 6">
       <a-entity id="modelwrap-6" gltf-model="#model-07" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
-
+    
     <!-- ========== 产品 8：targetIndex 7 ========== -->
-    <a-entity id="anchor-7" mindar-image-target="targetIndex: 7">
+     <a-entity id="anchor-7" mindar-image-target="targetIndex: 7">
       <a-entity id="modelwrap-7" gltf-model="#model-08" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
-
-    <!-- ========== 产品 9：targetIndex 8 ========== -->
-    <a-entity id="anchor-8" mindar-image-target="targetIndex: 8">
+    
+        <!-- ========== 产品 9：targetIndex 8 ========== -->
+     <a-entity id="anchor-8" mindar-image-target="targetIndex: 8">
       <a-entity id="modelwrap-8" gltf-model="#model-09" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
 
-    <!-- ========== 产品 10：targetIndex 9 ========== -->
-    <a-entity id="anchor-9" mindar-image-target="targetIndex: 9">
+        <!-- ========== 产品 10：targetIndex 9 ========== -->
+     <a-entity id="anchor-9" mindar-image-target="targetIndex: 9">
       <a-entity id="modelwrap-9" gltf-model="#model-10" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
 
-    <!-- ========== 产品 11：targetIndex 10 ========== -->
-    <a-entity id="anchor-10" mindar-image-target="targetIndex: 10">
+        <!-- ========== 产品 11：targetIndex 10 ========== -->
+     <a-entity id="anchor-10" mindar-image-target="targetIndex: 10">
       <a-entity id="modelwrap-10" gltf-model="#model-11" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
-
-    <!-- ========== 产品 12：targetIndex 11 ========== -->
-    <a-entity id="anchor-11" mindar-image-target="targetIndex: 11">
+    
+        <!-- ========== 产品 12：targetIndex 11 ========== -->
+     <a-entity id="anchor-11" mindar-image-target="targetIndex: 11">
       <a-entity id="modelwrap-11" gltf-model="#model-12" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
 
-    <!-- ========== 产品 13：targetIndex 12 ========== -->
-    <a-entity id="anchor-12" mindar-image-target="targetIndex: 12">
+        <!-- ========== 产品 13：targetIndex 12 ========== -->
+     <a-entity id="anchor-12" mindar-image-target="targetIndex: 12">
       <a-entity id="modelwrap-12" gltf-model="#model-13" scale="0.8 0.8 0.8" position="0 -0.1 0">
         <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
       </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
     </a-entity>
+    <!--
+    ========== 想加更多产品？复制下面的代码块，改数字就行 ==========
+
+    产品 3（targetIndex: 2）：
+    <a-entity id="anchor-2" mindar-image-target="targetIndex: 2">
+      <a-entity id="modelwrap-2" gltf-model="#model-03" scale="0.8 0.8 0.8" position="0 -0.1 0">
+        <a-animation attribute="rotation" from="0 0 0" to="0 360 0" dur="16000" repeat="indefinite" easing="linear"></a-animation>
+      </a-entity>
+      <a-image src="./assets/title.png" position="0 0.85 0.30" width="2.4" height="0.24"></a-image>
+      <a-image src="./assets/subtitle.png" position="0 0.60 0.30" width="1.8" height="0.26"></a-image>
+    </a-entity>
+    ================================================================
+    -->
 
   </a-scene>
 
   <script>
-    // ============================================================
-    // ★★★ v1.6 产品信息配置区 ★★★
-    //
-    // 杰哥往这里填文案就行，格式说明：
-    //   name  —— 产品名（面板大标题）
-    //   tag   —— 主题标签（产品名下面的小胶囊，如「古建·辽金」）
-    //   brief —— 一句话简介（面板默认显示）
-    //   desc  —— 详细介绍（点「查看更多」展开）
-    //   voice —— 语音播报的完整文案（点「语音介绍」朗读这段）
-    //
-    // 注意：顺序必须和 targets.mind 里的图片顺序一致！
-    // ============================================================
-    const PRODUCT_INFO = [
-      { name: '大同', tag: '古都 · 云冈',
-        brief: '【占位】一句话简介：以北魏平城为原型……',
-        desc: '【占位】详细介绍：设计灵感、零件数、尺寸、文化内涵等，写在这里。点「查看更多」后展示。',
-        voice: '【占位】语音文案：这里是语音播报的完整内容，识别到产品后点击语音介绍按钮即可收听。' },
-      { name: '关帝庙', tag: '古建 · 信义',
-        brief: '【占位】一句话简介……',
-        desc: '【占位】详细介绍……',
-        voice: '【占位】语音文案……' },
-      { name: '介休', tag: '琉璃 · 后土',
-        brief: '【占位】一句话简介……',
-        desc: '【占位】详细介绍……',
-        voice: '【占位】语音文案……' },
-      { name: '晋祠', tag: '古建 · 宋韵',
-        brief: '【占位】一句话简介……',
-        desc: '【占位】详细介绍……',
-        voice: '【占位】语音文案……' },
-      { name: '临汾', tag: '表里 · 汾河',
-        brief: '【占位】一句话简介……',
-        desc: '【占位】详细介绍……',
-        voice: '【占位】语音文案……' },
-      { name: '产品 6', tag: '待填 · 标签',
-        brief: '【占位】一句话简介……',
-        desc: '【占位】详细介绍……',
-        voice: '【占位】语音文案……' },
-      { name: '产品 7', tag: '待填 · 标签',
-        brief: '【占位】一句话简介……',
-        desc: '【占位】详细介绍……',
-        voice: '【占位】语音文案……' },
-      { name: '产品 8', tag: '待填 · 标签',
-        brief: '【占位】一句话简介……',
-        desc: '【占位】详细介绍……',
-        voice: '【占位】语音文案……' },
-      { name: '产品 9', tag: '待填 · 标签',
-        brief: '【占位】一句话简介……',
-        desc: '【占位】详细介绍……',
-        voice: '【占位】语音文案……' },
-      { name: '产品 10', tag: '待填 · 标签',
-        brief: '【占位】一句话简介……',
-        desc: '【占位】详细介绍……',
-        voice: '【占位】语音文案……' },
-      { name: '产品 11', tag: '待填 · 标签',
-        brief: '【占位】一句话简介……',
-        desc: '【占位】详细介绍……',
-        voice: '【占位】语音文案……' },
-      { name: '产品 12', tag: '待填 · 标签',
-        brief: '【占位】一句话简介……',
-        desc: '【占位】详细介绍……',
-        voice: '【占位】语音文案……' },
-      { name: '产品 13', tag: '待填 · 标签',
-        brief: '【占位】一句话简介……',
-        desc: '【占位】详细介绍……',
-        voice: '【占位】语音文案……' },
-    ];
-
     const TOTAL = 13;         // ← 改这里：你有几款产品就写几
     const sceneEl = document.querySelector('a-scene');
     const loading = document.getElementById('loading');
     const hint = document.getElementById('hint');
     const btnLock = document.getElementById('btn-lock');
-
-    // ============================================================
-    // v1.6：信息面板 + 语音播报
-    // ============================================================
-    const panel = document.getElementById('panel');
-    const pName = document.getElementById('p-name');
-    const pTag = document.getElementById('p-tag');
-    const pBrief = document.getElementById('p-brief');
-    const pDesc = document.getElementById('p-desc');
-    const btnVoice = document.getElementById('btn-voice');
-    const btnMore = document.getElementById('btn-more');
-    const deco = document.getElementById('deco');
-
-    let panelTarget = -1;     // 当前面板显示的是哪个产品
-    let voicePlaying = false;
-
-    function showPanel(i) {
-      const p = PRODUCT_INFO[i] || { name: '产品 ' + (i + 1), tag: '', brief: '', desc: '', voice: '' };
-      panelTarget = i;
-      pName.textContent = p.name;
-      pTag.textContent = p.tag;
-      pBrief.textContent = p.brief;
-      pDesc.textContent = p.desc;
-      pDesc.classList.remove('show');
-      btnMore.textContent = '查看更多 ⌄';
-      panel.classList.add('show');
-      deco.classList.add('show');
-      hint.style.opacity = '0';      // 面板出现时隐藏底部提示条，避免重叠
-    }
-
-    function hidePanel() {
-      panelTarget = -1;
-      panel.classList.remove('show');
-      deco.classList.remove('show');
-      stopVoice();
-      hint.style.opacity = '1';
-    }
-
-    // ---- 语音播报（Web Speech API，点按钮才播） ----
-    function stopVoice() {
-      voicePlaying = false;
-      btnVoice.classList.remove('playing');
-      btnVoice.textContent = '🔊 语音介绍';
-      try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
-    }
-
-    btnVoice.addEventListener('click', () => {
-      if (voicePlaying) { stopVoice(); return; }      // 播放中点击 = 停止
-      const p = PRODUCT_INFO[panelTarget];
-      if (!p || !p.voice) return;
-
-      if (!('speechSynthesis' in window)) {
-        btnVoice.textContent = '⚠️ 当前浏览器不支持语音';
-        setTimeout(() => { btnVoice.textContent = '🔊 语音介绍'; }, 2500);
-        return;
-      }
-      try {
-        const u = new SpeechSynthesisUtterance(p.voice);
-        u.lang = 'zh-CN';
-        u.rate = 0.95;      // 语速稍慢，播报更从容
-        u.onend = () => stopVoice();
-        u.onerror = () => stopVoice();
-        window.speechSynthesis.cancel();   // 先清掉可能残留的任务
-        window.speechSynthesis.speak(u);
-        voicePlaying = true;
-        btnVoice.classList.add('playing');
-        btnVoice.textContent = '⏹ 停止播放';
-      } catch (e) {
-        btnVoice.textContent = '⚠️ 语音播放失败';
-        setTimeout(() => { btnVoice.textContent = '🔊 语音介绍'; }, 2500);
-      }
-    });
-
-    // ---- 查看更多（展开详细介绍） ----
-    btnMore.addEventListener('click', () => {
-      const open = pDesc.classList.toggle('show');
-      btnMore.textContent = open ? '收起介绍 ⌃' : '查看更多 ⌄';
-    });
-
-    // ---- 生成积木颗粒浮动装饰（山西·积木主题） ----
-    (function buildDeco() {
-      // 四色积木：晋韵金 / 三晋红 / 汾河青 / 黄土橙
-      const colors = ['#d4a24e', '#b3473a', '#4a7d8c', '#c77b3b'];
-      const specs = [
-        { left: '6%',  size: 40, dur: 15, delay: 0 },
-        { left: '24%', size: 30, dur: 19, delay: 3.5 },
-        { left: '46%', size: 48, dur: 13, delay: 1.5 },
-        { left: '68%', size: 32, dur: 21, delay: 6 },
-        { left: '84%', size: 42, dur: 16, delay: 4 },
-        { left: '55%', size: 26, dur: 24, delay: 8 },
-      ];
-      specs.forEach((s, i) => {
-        const c = colors[i % colors.length];
-        const el = document.createElement('div');
-        el.className = 'brick';
-        el.style.left = s.left;
-        el.style.animationDuration = s.dur + 's';
-        el.style.animationDelay = s.delay + 's';
-        // 2 凸点积木条 SVG（Studio 积木顶面造型）
-        el.innerHTML =
-          '<svg width="' + s.size + '" height="' + Math.round(s.size * 0.62) + '" viewBox="0 0 64 40">' +
-          '<rect x="1" y="1" width="62" height="38" rx="7" fill="' + c + '" fill-opacity="0.9" stroke="rgba(0,0,0,0.25)" stroke-width="2"/>' +
-          '<circle cx="19" cy="20" r="8" fill="' + c + '" stroke="rgba(0,0,0,0.22)" stroke-width="2"/>' +
-          '<circle cx="45" cy="20" r="8" fill="' + c + '" stroke="rgba(0,0,0,0.22)" stroke-width="2"/>' +
-          '<circle cx="17" cy="18" r="2.5" fill="rgba(255,255,255,0.35)"/>' +
-          '<circle cx="43" cy="18" r="2.5" fill="rgba(255,255,255,0.35)"/>' +
-          '</svg>';
-        deco.appendChild(el);
-      });
-    })();
 
     window.addEventListener('load', () => {
       setTimeout(() => loading.classList.add('hidden'), 3000);
@@ -525,10 +293,6 @@
           placedTarget = -1;
         }
 
-        // v1.6：识别到产品 → 弹出信息面板 + 换产品时停止上一段语音
-        stopVoice();
-        showPanel(i);
-
         if (locked) {
           // 锁定模式下：把当前识别到的模型也 detach 到屏幕
           detachModel(i);
@@ -536,7 +300,7 @@
           hint.textContent = '🔒 已锁定：单指旋转 · 双指缩放 · 移开图也不消失';
           hint.classList.add('locked'); hint.classList.remove('tracked');
         } else {
-          hint.textContent = '✅ 已识别「' + (PRODUCT_INFO[i] && PRODUCT_INFO[i].name ? PRODUCT_INFO[i].name : '产品 ' + (i + 1)) + '」！点上方「锁定」可固定模型';
+          hint.textContent = '✅ 已识别「产品 ' + (i + 1) + '」！点上方「锁定」可固定模型';
           hint.classList.add('tracked'); hint.classList.remove('locked');
         }
       });
@@ -550,9 +314,7 @@
           placedTarget = i;
           hint.textContent = '🔒 模型已锁定在屏幕上：单指旋转 · 双指缩放';
           hint.classList.add('locked'); hint.classList.remove('tracked');
-          // 锁定模式：模型和面板都留在屏幕上，不收起
         } else {
-          hidePanel();
           hint.textContent = '📷 将手机摄像头对准任意产品图';
           hint.classList.remove('tracked', 'locked');
         }
@@ -579,8 +341,6 @@
           attachModel(placedTarget);
           placedTarget = -1;
         }
-        // 解锁且当前没有识别到目标 → 面板也收起
-        if (activeTarget === -1) hidePanel();
         hint.textContent = '🔓 已解锁，模型跟随追踪图移动';
         hint.classList.remove('locked');
       }
@@ -600,8 +360,6 @@
     let mouseDrag = false, mouseLast = null;
     document.addEventListener('mousedown', (e) => {
       if (placedTarget === -1) return;
-      // 点在面板和按钮上时不触发旋转
-      if (e.target.closest && (e.target.closest('#panel') || e.target.closest('#bar'))) return;
       mouseDrag = true;
       mouseLast = { x: e.clientX, y: e.clientY };
     });
@@ -619,8 +377,6 @@
 
     document.addEventListener('touchstart', (e) => {
       if (placedTarget === -1) return;
-      // 面板上的触摸（滚动看介绍）不参与旋转
-      if (e.target.closest && e.target.closest('#panel')) return;
       if (e.touches.length === 1) tLast = {
         x: e.touches[0].clientX,
         y: e.touches[0].clientY
@@ -629,7 +385,6 @@
     }, { passive: true });
     document.addEventListener('touchmove', (e) => {
       if (placedTarget === -1) return;
-      if (e.target.closest && e.target.closest('#panel')) return;   // 面板内手势放行
       const o = modelwraps[placedTarget].object3D;
       if (!o) return;
       if (e.touches.length === 1 && tLast !== null) {
