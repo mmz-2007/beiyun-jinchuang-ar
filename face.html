@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>北韵晋创 · 扫脸戴福</title>
+
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+    #loading {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(160deg, #0e1116 0%, #1a2030 50%, #0e1116 100%);
+      color: #e8e2d4; z-index: 100;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-size: 16px;
+      transition: opacity 0.6s;
+    }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+    #loading .load-logo {
+      width: 120px; max-width: 60%; margin-bottom: 20px;
+      background: rgba(245,240,230,0.95); border-radius: 14px; padding: 8px 12px;
+      box-shadow: 0 6px 32px rgba(212,162,78,0.2);
+      animation: logoBreath 2s ease-in-out infinite;
+    }
+    #loading .load-logo img { width: 100%; display: block; }
+    @keyframes logoBreath {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.06); opacity: 1; }
+    }
+    #loading .load-bricks {
+      display: flex; gap: 6px; margin-bottom: 16px;
+    }
+    #loading .load-bricks span {
+      display: block; width: 12px; height: 12px; border-radius: 3px;
+      animation: brickJump 1.2s ease-in-out infinite;
+    }
+    #loading .load-bricks span:nth-child(1) { background: #d4a24e; animation-delay: 0s; }
+    #loading .load-bricks span:nth-child(2) { background: #c8392e; animation-delay: 0.15s; }
+    #loading .load-bricks span:nth-child(3) { background: #2a6e3f; animation-delay: 0.3s; }
+    #loading .load-bricks span:nth-child(4) { background: #1e5b8a; animation-delay: 0.45s; }
+    #loading .load-bricks span:nth-child(5) { background: #e8c878; animation-delay: 0.6s; }
+    @keyframes brickJump {
+      0%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-14px); }
+      60% { transform: translateY(-14px); }
+    }
+    #loading .load-text {
+      font-size: 15px; letter-spacing: 4px; color: #d4a24e; opacity: 0.9;
+      animation: textPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes textPulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    #hint {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: rgba(16,20,24,0.88); color: #fff;
+      padding: 10px 18px; border-radius: 999px; font-size: 14px;
+      z-index: 50; max-width: 90%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      transition: opacity 0.3s;
+    }
+    #hint.tracked { background: rgba(200,57,46,0.92); }
+    #bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+      display: flex; gap: 6px; padding: 10px 10px 0; justify-content: center; flex-wrap: nowrap;
+      overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    #bar::-webkit-scrollbar { display: none; }
+    #bar a, #bar button {
+      flex-shrink: 0;
+      background: rgba(30,38,46,0.92); color: #e8e2d4; border: 1px solid rgba(255,255,255,0.15);
+      padding: 8px 12px; border-radius: 999px; font-size: 13px; text-decoration: none; cursor: pointer;
+      backdrop-filter: blur(6px); white-space: nowrap;
+    }
+    #bar a:active, #bar button:active { background: #d4a24e; color: #101418; }
+
+    .logo-badge {
+      position: fixed; bottom: 16px; right: 16px; z-index: 55;
+      background: rgba(245,240,230,0.92); border-radius: 10px; padding: 4px 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3); pointer-events: none;
+      max-width: 90px; opacity: 0.7; transition: opacity 0.3s;
+    }
+    .logo-badge:hover { opacity: 1; }
+    .logo-badge img { width: 100%; display: block; }
+
+    /* 截图闪光 */
+    #flash {
+      position: fixed; inset: 0; z-index: 90; background: #fff;
+      opacity: 0; pointer-events: none; transition: opacity 0.15s;
+    }
+    #flash.show { opacity: 0.8; }
+
+    /* 福字飘落装饰 */
+    #fu-rain { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 0.8s; }
+    #fu-rain.show { opacity: 1; }
+    #fu-rain span {
+      position: absolute; top: -40px; font-size: 24px; color: rgba(200,57,46,0.35);
+      animation: fuFall linear infinite;
+    }
+    @keyframes fuFall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.35; }
+      90% { opacity: 0.35; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 品牌化加载动画 -->
+  <div id="loading">
+    <div class="load-logo"><img src="./assets/logo.png" alt="北韵晋创"></div>
+    <div class="load-bricks">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="load-text">正在唤醒福气…</div>
+  </div>
+
+  <!-- 顶部操作条 -->
+  <div id="bar">
+    <a href="./index.html">🏠 首页</a>
+    <button id="btn-shot">📸 保存福照</button>
+    <a href="./ar.html">📷 AR扫描</a>
+  </div>
+
+  <!-- 底部提示条 -->
+  <div id="hint">😊 将脸对准前置摄像头…</div>
+
+  <!-- 福字飘落装饰 -->
+  <div id="fu-rain" aria-hidden="true"></div>
+
+  <!-- logo 水印 -->
+  <div class="logo-badge"><img src="./assets/logo.png" alt="北韵晋创"></div>
+
+  <!-- 截图闪光 -->
+  <div id="flash"></div>
+
+  <a-scene mindar-face="faceIndex: 0; maxTrack: 1" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" id="face-scene" loading-screen="enabled: false" embedded>
+
+    <a-camera active="false" position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-assets>
+      <canvas id="fu-canvas" width="256" height="256"></canvas>
+    </a-assets>
+
+    <a-entity mindar-face-target="targetIndex: 0" id="face-anchor">
+      <a-plane id="fu-sticker" position="0 0.12 0" width="0.14" height="0.14"
+        material="src: #fu-canvas; transparent: true; side: double"
+        rotation="0 0 180">
+      </a-plane>
+    </a-entity>
+
+  </a-scene>
+
+  <script>
+    // ============================================================
+    // 生成"福"字贴纸纹理（红底金字，倒贴=福到了）
+    // ============================================================
+    (function makeFuTexture() {
+      const canvas = document.getElementById('fu-canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 红色背景
+      ctx.fillStyle = '#c8392e';
+      ctx.fillRect(0, 0, 256, 256);
+
+      // 金色边框（双层）
+      ctx.strokeStyle = '#e8c878';
+      ctx.lineWidth = 10;
+      ctx.strokeRect(5, 5, 246, 246);
+      ctx.lineWidth = 4;
+      ctx.strokeRect(20, 20, 216, 216);
+
+      // 四角金点
+      ctx.fillStyle = '#e8c878';
+      [[28,28],[228,28],[28,228],[228,228]].forEach(([x,y]) => {
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // 金色"福"字（正写，plane rotation 180 让它倒着显示=福到了）
+      ctx.fillStyle = '#e8c878';
+      ctx.font = 'bold 170px "Microsoft YaHei","PingFang SC",serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('福', 128, 132);
+    })();
+
+    // ============================================================
+    // 面部识别事件
+    // ============================================================
+    const faceAnchor = document.getElementById('face-anchor');
+    const hint = document.getElementById('hint');
+    const fuRain = document.getElementById('fu-rain');
+    let foundOnce = false;
+
+    faceAnchor.addEventListener('targetFound', () => {
+      foundOnce = true;
+      hint.textContent = '🧧 福星高照！北韵晋创祝您万事如意';
+      hint.classList.add('tracked');
+      fuRain.classList.add('show');
+    });
+
+    faceAnchor.addEventListener('targetLost', () => {
+      hint.textContent = '😊 将脸对准前置摄像头…';
+      hint.classList.remove('tracked');
+      fuRain.classList.remove('show');
+    });
+
+    // ============================================================
+    // 福字飘落装饰
+    // ============================================================
+    (function makeFuRain() {
+      const chars = ['福','禄','寿','喜','财','安','康','和'];
+      for (let i = 0; i < 12; i++) {
+        const s = document.createElement('span');
+        s.textContent = chars[i % chars.length];
+        s.style.left = (Math.random() * 100) + '%';
+        s.style.fontSize = (18 + Math.random() * 16) + 'px';
+        s.style.animationDuration = (4 + Math.random() * 4) + 's';
+        s.style.animationDelay = (Math.random() * 4) + 's';
+        fuRain.appendChild(s);
+      }
+    })();
+
+    // ============================================================
+    // 截图功能：保存带福字的自拍
+    // ============================================================
+    const btnShot = document.getElementById('btn-shot');
+    const flash = document.getElementById('flash');
+
+    btnShot.addEventListener('click', () => {
+      const sceneEl = document.getElementById('face-scene');
+
+      // 闪光效果
+      flash.classList.add('show');
+      setTimeout(() => flash.classList.remove('show'), 300);
+
+      // A-Frame screenshot
+      try {
+        const canvas = sceneEl.components.screenshot.getCanvas('perspective');
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = 'bei-yun-fu-zhao.png';
+        link.click();
+        hint.textContent = '📸 福照已保存！分享好运吧~';
+        setTimeout(() => {
+          if (foundOnce) hint.textContent = '🧧 福星高照！北韵晋创祝您万事如意';
+        }, 2500);
+      } catch(e) {
+        hint.textContent = '截图失败，请稍后再试';
+        setTimeout(() => {
+          if (foundOnce) hint.textContent = '🧧 福星高照！北韵晋创祝您万事如意';
+          else hint.textContent = '😊 将脸对准前置摄像头…';
+        }, 2000);
+      }
+    });
+
+    // ============================================================
+    // 加载完成
+    // ============================================================
+    const loading = document.getElementById('loading');
+    window.addEventListener('load', () => {
+      setTimeout(() => loading.classList.add('hidden'), 3500);
+    });
+  </script>
+
+</body>
+</html>
