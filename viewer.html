@@ -136,6 +136,14 @@
       85%  { opacity: 0.22; }
       100% { transform: translateY(-115vh) rotate(340deg); opacity: 0; }
     }
+    .logo-badge {
+      position: fixed; bottom: 16px; right: 16px; z-index: 55;
+      background: rgba(245,240,230,0.92); border-radius: 10px; padding: 4px 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3); pointer-events: none;
+      max-width: 90px; opacity: 0.7; transition: opacity 0.3s;
+    }
+    .logo-badge:hover { opacity: 1; }
+    .logo-badge img { width: 100%; display: block; }
   </style>
 </head>
 <body>
@@ -172,6 +180,9 @@
 
   <!-- v1.6：积木颗粒浮动装饰 -->
   <div id="deco" aria-hidden="true"></div>
+
+  <!-- v1.8.1：logo 水印 -->
+  <div class="logo-badge"><img src="./assets/logo.png" alt="北韵晋创"></div>
 
   <script type="module">
     import * as THREE from 'three';

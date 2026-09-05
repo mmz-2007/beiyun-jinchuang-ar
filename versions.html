@@ -45,10 +45,19 @@
       background: rgba(212,162,78,0.15); color: #d4a24e; margin-left: 8px; vertical-align: 2px;
     }
     .footer { text-align: center; font-size: 12px; color: #6a7078; margin-top: 32px; line-height: 1.8; }
+    .logo-top {
+      display: flex; justify-content: center; margin-bottom: 20px;
+    }
+    .logo-top div {
+      background: rgba(245,240,230,0.95); border-radius: 12px; padding: 8px 16px;
+      max-width: 200px;
+    }
+    .logo-top img { width: 100%; display: block; }
   </style>
 </head>
 <body>
   <div class="wrap">
+    <div class="logo-top"><div><img src="./assets/logo.png" alt="北韵晋创"></div></div>
     <h1>北韵晋创 <span>· AR 版本历史</span></h1>
     <div class="sub">每个版本均为可独立访问的线上存档 · 点击卡片直达对应版本</div>
     <div style="text-align:center;margin-bottom:24px;"><a href="./index.html" style="color:#d4a24e;text-decoration:none;font-size:13px;">← 返回首页</a></div>
@@ -57,11 +66,22 @@
     <div class="card">
       <div class="badge b-current">当前</div>
       <div class="info">
-        <h2>v1.8 主页面入口 + 图片上传识别 + 屏幕适配修复<span class="tag">最新</span></h2>
+        <h2>v1.8.1 Logo展示 + 上传识别修复 + 团队排序<span class="tag">最新</span></h2>
         <div class="date">2026-09-05</div>
-        <p>新增主页入口页（index.html），清晰区分 AR扫描、上传图片识别、3D自由查看、版本历史四个入口；AR页新增本地图片上传识别功能（canvas.captureStream 喂给 MindAR，无需摄像头也能扫图）；修复 viewer.html 产品按钮换行重叠（改为横向滚动）；viewer.html 产品文案同步至 v1.7 深化版，新增分享按钮。</p>
+        <p>所有页面添加北韵晋创 Logo 展示（首页主视觉 + 其他页面水印徽章）；修复上传图片识别功能（改为在 MindAR 启动前覆写 getUserMedia，用 Promise 等待用户选文件，canvas 持续渲染产出帧流）；修正团队排序（孟显排第三位）。</p>
       </div>
       <a class="go" href="./index.html">体验 →</a>
+    </div>
+
+    <!-- v1.8 -->
+    <div class="card">
+      <div class="badge b-old">v1.8</div>
+      <div class="info">
+        <h2>主页面入口 + 图片上传识别 + 屏幕适配修复</h2>
+        <div class="date">2026-09-05 · commit 09f5542</div>
+        <p>新增主页入口页（index.html），清晰区分 AR扫描、上传图片识别、3D自由查看、版本历史四个入口；AR页新增本地图片上传识别功能；修复 viewer.html 产品按钮换行重叠（改为横向滚动）；viewer.html 产品文案同步至 v1.7 深化版，新增分享按钮。</p>
+      </div>
+      <a class="go ghost" href="./ar.html">体验 →</a>
     </div>
 
     <!-- v1.7 -->

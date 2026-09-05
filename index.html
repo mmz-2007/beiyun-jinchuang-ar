@@ -44,13 +44,17 @@
       from { opacity: 0; transform: translateY(-20px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    .hero .logo {
-      font-size: 42px; font-weight: 800; letter-spacing: 6px;
-      background: linear-gradient(135deg, #d4a24e, #e8c878, #d4a24e);
-      -webkit-background-clip: text; background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
+    .hero .logo-img {
+      width: 220px; max-width: 70%; margin: 0 auto 12px;
+      background: rgba(245,240,230,0.95); border-radius: 14px; padding: 10px 18px;
+      box-shadow: 0 4px 24px rgba(212,162,78,0.15);
+      animation: fadeInLogo 1s ease-out;
     }
+    @keyframes fadeInLogo {
+      from { opacity: 0; transform: scale(0.92); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .hero .logo-img img { width: 100%; display: block; }
     .hero .tagline {
       font-size: 15px; color: #8a9099; letter-spacing: 4px;
     }
@@ -133,7 +137,7 @@
 
   <div class="wrap">
     <div class="hero">
-      <div class="logo">北韵晋创</div>
+      <div class="logo-img"><img src="./assets/logo.png" alt="北韵晋创"></div>
       <div class="tagline">拼晋韵万象 · AR见山西</div>
       <div class="subtitle">iCAN 大学生创新创业大赛 · 智慧文创赛道</div>
     </div>
@@ -184,7 +188,7 @@
     </div>
 
     <div class="footer">
-      <strong>北韵晋创团队</strong> · 李杰 / 姚天泽 / 李昭林 / 王金博 / 孟显<br>
+      <strong>北韵晋创团队</strong> · 李杰 / 姚天泽 / 孟显 / 李昭林 / 王金博<br>
       以山西文化地标积木实物为载体，将可触摸的文创产品与网页AR结合
     </div>
   </div>

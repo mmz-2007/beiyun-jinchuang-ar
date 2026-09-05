@@ -104,6 +104,14 @@
       0%, 100% { box-shadow: 0 0 0 0 rgba(212,162,78,0.5); }
       50% { box-shadow: 0 0 0 8px rgba(212,162,78,0); }
     }
+    .logo-badge {
+      position: fixed; bottom: 16px; right: 16px; z-index: 55;
+      background: rgba(245,240,230,0.92); border-radius: 10px; padding: 4px 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3); pointer-events: none;
+      max-width: 90px; opacity: 0.7; transition: opacity 0.3s;
+    }
+    .logo-badge:hover { opacity: 1; }
+    .logo-badge img { width: 100%; display: block; }
 
     /* ============================================================
        ★ v1.6 新增：积木主题浮动装饰（山西·积木颗粒缓缓上浮）
@@ -161,6 +169,9 @@
   <!-- v1.6：积木颗粒浮动装饰 -->
   <div id="deco" aria-hidden="true"></div>
 
+  <!-- v1.8.1：logo 水印 -->
+  <div class="logo-badge"><img src="./assets/logo.png" alt="北韵晋创"></div>
+
   <!--
     ============================================================
     ★★★ 多产品配置说明 ★★★
@@ -176,7 +187,7 @@
        - 以此类推
   -->
 
-  <a-scene mindar-image="imageTargetSrc: ./assets/targets.mind; maxTrack: 1; filterMinCF: 0.1; filterBeta: 10" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+  <a-scene mindar-image="imageTargetSrc: ./assets/targets.mind; maxTrack: 1; filterMinCF: 0.1; filterBeta: 10" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" id="ar-scene">
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
@@ -293,6 +304,72 @@
   </a-scene>
 
   <script>
+    // ============================================================
+    // ★ v1.8.1 上传模式：在 MindAR 启动前覆写 getUserMedia
+    // 核心原理：upload=1 时，用 Promise 让 MindAR 等待用户选文件
+    // ============================================================
+    const _isUpload = new URLSearchParams(location.search).get('upload') === '1';
+    const _fileInput = document.getElementById('file-input');
+    const _btnUpload = document.getElementById('btn-upload');
+
+    if (_isUpload) {
+      // 在 MindAR 调用 getUserMedia 之前覆写
+      let _resolveStream;
+      const _streamPromise = new Promise(r => _resolveStream = r);
+      const _origGUM = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+      navigator.mediaDevices.getUserMedia = async (c) => _streamPromise;
+
+      // 显示上传提示
+      document.getElementById('loading').textContent = '🖼 请选择要识别的产品图片…';
+      document.getElementById('hint').textContent = '🖼 请选择一张产品卡片照片';
+
+      // 自动弹出文件选择器
+      setTimeout(() => _fileInput.click(), 600);
+
+      _fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        document.getElementById('loading').textContent = '⏳ 正在分析图片…';
+        document.getElementById('loading').style.display = 'flex';
+
+        const img = new Image();
+        img.onload = () => {
+          // 创建 canvas 持续渲染，产出视频流
+          const canvas = document.createElement('canvas');
+          const maxW = 1280, maxH = 960;
+          let w = img.width, h = img.height;
+          if (w > maxW) { h = h * maxW / w; w = maxW; }
+          if (h > maxH) { w = w * maxH / h; h = maxH; }
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          (function drawLoop() {
+            ctx.drawImage(img, 0, 0, w, h);
+            requestAnimationFrame(drawLoop);
+          })();
+
+          const stream = canvas.captureStream(30);
+          _resolveStream(stream);
+
+          // 显示上传图片预览
+          const preview = document.createElement('img');
+          preview.src = URL.createObjectURL(file);
+          preview.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;object-fit:contain;z-index:5;opacity:0.3;pointer-events:none;';
+          preview.id = 'upload-preview';
+          document.body.appendChild(preview);
+
+          document.getElementById('hint').textContent = '🖼 正在识别图片中的产品…';
+          _btnUpload.textContent = '📷 返回摄像头';
+          _btnUpload.classList.add('on');
+          _btnUpload.onclick = () => location.href = './ar.html';
+        };
+        img.src = URL.createObjectURL(file);
+      });
+    } else {
+      // 正常模式：点击上传按钮 → 跳转到上传模式
+      _btnUpload.addEventListener('click', () => location.href = './ar.html?upload=1');
+    }
+
     // ============================================================
     // ★★★ v1.6 产品信息配置区 ★★★
     //
@@ -498,75 +575,6 @@
       }
     });
 
-    // ============================================================
-    // ★ v1.8 新增：上传本地图片识别（无需摄像头，扫图片文件即可）
-    // ============================================================
-    const btnUpload = document.getElementById('btn-upload');
-    const fileInput = document.getElementById('file-input');
-    let uploadMode = false;
-
-    btnUpload.addEventListener('click', () => fileInput.click());
-
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const img = new Image();
-      img.onload = () => {
-        // 把上传的图片画到 canvas，用 captureStream 喂给 MindAR
-        const canvas = document.createElement('canvas');
-        const maxW = 1280, maxH = 960;
-        let w = img.width, h = img.height;
-        if (w > maxW) { h = h * maxW / w; w = maxW; }
-        if (h > maxH) { w = w * maxH / h; h = maxH; }
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-
-        const stream = canvas.captureStream(30);
-
-        // 停掉当前摄像头
-        if (window._cameraStream) {
-          window._cameraStream.getTracks().forEach(t => t.stop());
-        }
-
-        // 覆写 getUserMedia，让 MindAR 用我们的 canvas stream
-        const origGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
-        navigator.mediaDevices.getUserMedia = async (constraints) => {
-          if (uploadMode) return stream;
-          return origGetUserMedia(constraints);
-        };
-
-        uploadMode = true;
-        btnUpload.textContent = '📷 摄像头模式';
-        btnUpload.classList.add('on');
-        hint.textContent = '🖼 正在识别上传的图片…';
-        hint.classList.remove('tracked', 'locked');
-
-        // 重启 MindAR：移除再重新添加 mindar-image 属性
-        const mindarAttr = sceneEl.getAttribute('mindar-image');
-        sceneEl.removeAttribute('mindar-image');
-        setTimeout(() => {
-          sceneEl.setAttribute('mindar-image', mindarAttr);
-        }, 200);
-
-        // 切回摄像头模式
-        btnUpload.onclick = () => {
-          if (!uploadMode) return;
-          uploadMode = false;
-          btnUpload.textContent = '🖼 上传图片';
-          btnUpload.classList.remove('on');
-          stream.getTracks().forEach(t => t.stop());
-          navigator.mediaDevices.getUserMedia = origGetUserMedia;
-
-          const attr = sceneEl.getAttribute('mindar-image');
-          sceneEl.removeAttribute('mindar-image');
-          setTimeout(() => sceneEl.setAttribute('mindar-image', attr), 200);
-          hint.textContent = '📷 将手机摄像头对准任意产品图';
-        };
-      };
-      img.src = URL.createObjectURL(file);
-    });
-
     // ---- 生成积木颗粒浮动装饰（山西·积木主题） ----
     (function buildDeco() {
       // 四色积木：晋韵金 / 三晋红 / 汾河青 / 黄土橙
@@ -601,10 +609,6 @@
 
     window.addEventListener('load', () => {
       setTimeout(() => loading.classList.add('hidden'), 3000);
-      // 从首页跳转来自动打开上传
-      if (new URLSearchParams(location.search).get('upload') === '1') {
-        setTimeout(() => fileInput.click(), 1500);
-      }
     });
 
     // ============================================================
