@@ -66,11 +66,22 @@
     <div class="card">
       <div class="badge b-current">当前</div>
       <div class="info">
-        <h2>v1.8.1 Logo展示 + 上传识别修复 + 团队排序<span class="tag">最新</span></h2>
+        <h2>v1.9 多目标追踪 + 点击交互 + 品牌化UI<span class="tag">最新</span></h2>
         <div class="date">2026-09-05</div>
+        <p>多目标同时追踪（maxTrack: 3，可同时识别最多3款产品，每款独立管理锁定/面板/手势）；点击模型弹出信息面板（A-Frame cursor + raycaster，电脑端鼠标/移动端触摸均可点击）；品牌化加载动画（Logo呼吸 + 积木五色跳动 + "正在寻找晋韵…"文案）；锁定逻辑从单模型互斥改为 Set 多模型独立。</p>
+      </div>
+      <a class="go" href="./ar.html">体验 →</a>
+    </div>
+
+    <!-- v1.8.1 -->
+    <div class="card">
+      <div class="badge b-old">v1.8.1</div>
+      <div class="info">
+        <h2>Logo展示 + 上传识别修复 + 团队排序</h2>
+        <div class="date">2026-09-05 · commit c70ecd5</div>
         <p>所有页面添加北韵晋创 Logo 展示（首页主视觉 + 其他页面水印徽章）；修复上传图片识别功能（改为在 MindAR 启动前覆写 getUserMedia，用 Promise 等待用户选文件，canvas 持续渲染产出帧流）；修正团队排序（孟显排第三位）。</p>
       </div>
-      <a class="go" href="./index.html">体验 →</a>
+      <a class="go ghost" href="./ar.html">体验 →</a>
     </div>
 
     <!-- v1.8 -->
