@@ -51,16 +51,28 @@
   <div class="wrap">
     <h1>北韵晋创 <span>· AR 版本历史</span></h1>
     <div class="sub">每个版本均为可独立访问的线上存档 · 点击卡片直达对应版本</div>
+    <div style="text-align:center;margin-bottom:24px;"><a href="./index.html" style="color:#d4a24e;text-decoration:none;font-size:13px;">← 返回首页</a></div>
 
     <!-- 当前版 -->
     <div class="card">
       <div class="badge b-current">当前</div>
       <div class="info">
-        <h2>v1.7 AR社交分享 + 语音播报MP3 + 文案深化<span class="tag">最新</span></h2>
+        <h2>v1.8 主页面入口 + 图片上传识别 + 屏幕适配修复<span class="tag">最新</span></h2>
         <div class="date">2026-09-05</div>
-        <p>新增 AR 社交分享功能（优先调用系统原生分享，兜底复制链接）；生成 13 款产品语音播报 MP3 文件（微软晓晓语音），替换浏览器 TTS 兜底；13 款产品文案全面深化，融入历史背景、文化价值、设计灵感与产品规格四维描述。</p>
+        <p>新增主页入口页（index.html），清晰区分 AR扫描、上传图片识别、3D自由查看、版本历史四个入口；AR页新增本地图片上传识别功能（canvas.captureStream 喂给 MindAR，无需摄像头也能扫图）；修复 viewer.html 产品按钮换行重叠（改为横向滚动）；viewer.html 产品文案同步至 v1.7 深化版，新增分享按钮。</p>
       </div>
       <a class="go" href="./index.html">体验 →</a>
+    </div>
+
+    <!-- v1.7 -->
+    <div class="card">
+      <div class="badge b-old">v1.7</div>
+      <div class="info">
+        <h2>AR社交分享 + 语音播报MP3 + 文案深化</h2>
+        <div class="date">2026-09-05 · commit dea062d</div>
+        <p>新增 AR 社交分享功能（优先调用系统原生分享，兜底复制链接）；生成 13 款产品语音播报 MP3 文件（微软晓晓语音），替换浏览器 TTS 兜底；13 款产品文案全面深化，融入历史背景、文化价值、设计灵感与产品规格四维描述。</p>
+      </div>
+      <a class="go ghost" href="./ar.html">体验 →</a>
     </div>
 
     <!-- v1.6.2 -->
@@ -71,7 +83,7 @@
         <div class="date">2026-08-30 · commit c605ac6</div>
         <p>基于 13 张产品实拍卡片图，为每款产品填充真实的简介、详细描述与语音文案，覆盖五款地名积木字（云冈/解州/介休/晋祠/临汾）、两款古建冰箱贴（魁星楼/水镜台）、太原地铁立柱、两款迎泽桥塔、迫击炮基础/升级版、龙鹤福纹样摆件。</p>
       </div>
-      <a class="go ghost" href="./index.html">体验 →</a>
+      <a class="go ghost" href="./v1.6/index.html">体验 →</a>
     </div>
 
     <!-- v1.6 -->
@@ -153,7 +165,8 @@
 
     <div class="footer">
       北韵晋创——拼晋韵万象，AR见山西 · iCAN 智慧文创赛道<br>
-      迭代记录：9 次功能提交 · 均可在线回溯
+      迭代记录：11 次功能提交 · 均可在线回溯<br>
+      <a href="./index.html" style="color:#d4a24e;text-decoration:none;">← 返回首页</a>
     </div>
   </div>
 </body>
