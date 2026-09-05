@@ -26,42 +26,27 @@
       animation: logoBreath 2s ease-in-out infinite;
     }
     #loading .load-logo img { width: 100%; display: block; }
-    @keyframes logoBreath {
-      0%, 100% { transform: scale(1); opacity: 0.9; }
-      50% { transform: scale(1.06); opacity: 1; }
-    }
+    @keyframes logoBreath { 0%,100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.06); opacity: 1; } }
     #loading .load-bricks { display: flex; gap: 6px; margin-bottom: 16px; }
-    #loading .load-bricks span {
-      display: block; width: 12px; height: 12px; border-radius: 3px;
-      animation: brickJump 1.2s ease-in-out infinite;
-    }
+    #loading .load-bricks span { display: block; width: 12px; height: 12px; border-radius: 3px; animation: brickJump 1.2s ease-in-out infinite; }
     #loading .load-bricks span:nth-child(1) { background: #d4a24e; animation-delay: 0s; }
     #loading .load-bricks span:nth-child(2) { background: #c8392e; animation-delay: 0.15s; }
     #loading .load-bricks span:nth-child(3) { background: #2a6e3f; animation-delay: 0.3s; }
     #loading .load-bricks span:nth-child(4) { background: #1e5b8a; animation-delay: 0.45s; }
     #loading .load-bricks span:nth-child(5) { background: #e8c878; animation-delay: 0.6s; }
-    @keyframes brickJump {
-      0%, 100% { transform: translateY(0); }
-      40% { transform: translateY(-14px); }
-      60% { transform: translateY(-14px); }
-    }
-    #loading .load-text {
-      font-size: 15px; letter-spacing: 4px; color: #d4a24e; opacity: 0.9;
-      animation: textPulse 1.5s ease-in-out infinite;
-    }
-    @keyframes textPulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
-    }
+    @keyframes brickJump { 0%,100% { transform: translateY(0); } 40%,60% { transform: translateY(-14px); } }
+    #loading .load-text { font-size: 15px; letter-spacing: 4px; color: #d4a24e; opacity: 0.9; animation: textPulse 1.5s ease-in-out infinite; }
+    @keyframes textPulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
 
     #hint {
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
       background: rgba(16,20,24,0.88); color: #fff;
       padding: 10px 18px; border-radius: 999px; font-size: 14px;
       z-index: 50; max-width: 90%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       transition: opacity 0.3s;
     }
     #hint.tracked { background: rgba(200,57,46,0.92); }
+
     #bar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 60;
       display: flex; gap: 6px; padding: 10px 10px 0; justify-content: center; flex-wrap: nowrap;
@@ -76,8 +61,30 @@
     }
     #bar a:active, #bar button:active { background: #d4a24e; color: #101418; }
 
+    /* 装饰选择器 */
+    #deco-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 65;
+      display: flex; gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      justify-content: center; flex-wrap: nowrap; overflow-x: auto;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+      background: linear-gradient(0deg, rgba(14,17,22,0.95) 60%, transparent);
+    }
+    #deco-bar::-webkit-scrollbar { display: none; }
+    .deco-btn {
+      flex-shrink: 0;
+      background: rgba(30,38,46,0.92); color: #e8e2d4;
+      border: 2px solid rgba(255,255,255,0.12);
+      padding: 8px 14px; border-radius: 14px; font-size: 13px; cursor: pointer;
+      backdrop-filter: blur(8px); white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .deco-btn.active {
+      background: rgba(212,162,78,0.92); color: #101418; border-color: #d4a24e;
+      transform: scale(1.05);
+    }
+
     .logo-badge {
-      position: fixed; bottom: 16px; right: 16px; z-index: 55;
+      position: fixed; bottom: 72px; right: 16px; z-index: 55;
       background: rgba(245,240,230,0.92); border-radius: 10px; padding: 4px 10px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.3); pointer-events: none;
       max-width: 90px; opacity: 0.7; transition: opacity 0.3s;
@@ -85,154 +92,306 @@
     .logo-badge:hover { opacity: 1; }
     .logo-badge img { width: 100%; display: block; }
 
-    #flash {
-      position: fixed; inset: 0; z-index: 90; background: #fff;
-      opacity: 0; pointer-events: none; transition: opacity 0.15s;
-    }
+    #flash { position: fixed; inset: 0; z-index: 90; background: #fff; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
     #flash.show { opacity: 0.8; }
 
     #fu-rain { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 0.8s; }
     #fu-rain.show { opacity: 1; }
-    #fu-rain span {
-      position: absolute; top: -40px; font-size: 24px; color: rgba(200,57,46,0.35);
-      animation: fuFall linear infinite;
-    }
-    @keyframes fuFall {
-      0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-      10% { opacity: 0.35; }
-      90% { opacity: 0.35; }
-      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
-    }
+    #fu-rain span { position: absolute; top: -40px; font-size: 24px; color: rgba(200,57,46,0.35); animation: fuFall linear infinite; }
+    @keyframes fuFall { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.35; } 90% { opacity: 0.35; } 100% { transform: translateY(110vh) rotate(360deg); opacity: 0; } }
 
-    /* 隐藏 A-Frame 的 VR 按钮 */
     .a-enter-vr, .a-orientation-modal { display: none !important; }
   </style>
 </head>
 <body>
 
-  <!-- 品牌化加载动画 -->
   <div id="loading">
     <div class="load-logo"><img src="./assets/logo.png" alt="北韵晋创"></div>
-    <div class="load-bricks">
-      <span></span><span></span><span></span><span></span><span></span>
-    </div>
+    <div class="load-bricks"><span></span><span></span><span></span><span></span><span></span></div>
     <div class="load-text">正在唤醒福气…</div>
   </div>
 
-  <!-- 顶部操作条 -->
   <div id="bar">
     <a href="./index.html">🏠 首页</a>
     <button id="btn-shot">📸 保存福照</button>
     <a href="./ar.html">📷 AR扫描</a>
   </div>
 
-  <!-- 底部提示条 -->
   <div id="hint">😊 将脸对准摄像头…</div>
 
-  <!-- 福字飘落装饰 -->
+  <!-- 装饰选择器 -->
+  <div id="deco-bar">
+    <button class="deco-btn active" data-deco="fu">🧧 福字贴</button>
+    <button class="deco-btn" data-deco="hat">🎅 圣诞帽</button>
+    <button class="deco-btn" data-deco="beard">🤶 白胡子</button>
+    <button class="deco-btn" data-deco="none">❌ 清除</button>
+  </div>
+
   <div id="fu-rain" aria-hidden="true"></div>
-
-  <!-- logo 水印 -->
   <div class="logo-badge"><img src="./assets/logo.png" alt="北韵晋创"></div>
-
-  <!-- 截图闪光 -->
   <div id="flash"></div>
 
-  <!-- 隐藏的 canvas 用于生成福字纹理（不放 a-assets 里，避免预加载问题） -->
+  <!-- 隐藏的 canvas 用于绘制各装饰纹理 -->
   <canvas id="fu-canvas" width="256" height="256" style="display:none;"></canvas>
+  <canvas id="hat-canvas" width="256" height="256" style="display:none;"></canvas>
+  <canvas id="beard-canvas" width="256" height="256" style="display:none;"></canvas>
 
   <a-scene mindar-face="faceIndex: 0; maxTrack: 1" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" id="face-scene" loading-screen="enabled: false">
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <a-entity mindar-face-target="targetIndex: 168" id="face-anchor">
-      <a-image id="fu-sticker" position="0 0 0.08" width="0.13" height="0.13"
-        rotation="0 0 0" material="transparent: true; side: double">
-      </a-image>
+    <!-- 额头锚点（targetIndex 10 = 发际线中心）-->
+    <a-entity mindar-face-target="targetIndex: 10" id="anchor-forehead">
+      <a-image id="deco-fu" position="0 0 0.01" width="0.1" height="0.1"
+        material="transparent: true; side: double"></a-image>
+      <a-image id="deco-hat" position="0 0.08 0.01" width="0.16" height="0.16"
+        material="transparent: true; side: double" visible="false"></a-image>
     </a-entity>
+
+    <!-- 下巴锚点（targetIndex 152 = 下巴底部）-->
+    <a-entity mindar-face-target="targetIndex: 152" id="anchor-chin">
+      <a-image id="deco-beard" position="0 -0.01 0.01" width="0.14" height="0.14"
+        material="transparent: true; side: double" visible="false"></a-image>
+    </a-entity>
+
+    <!-- 左右脸颊锚点（用于计算脸宽，自动缩放）-->
+    <a-entity mindar-face-target="targetIndex: 234" id="anchor-left" visible="false"></a-entity>
+    <a-entity mindar-face-target="targetIndex: 454" id="anchor-right" visible="false"></a-entity>
 
   </a-scene>
 
   <script>
     // ============================================================
-    // 1. 生成"福"字贴纸纹理（红底金字，倒贴=福到了）
+    // 1. 绘制三种装饰纹理
     // ============================================================
-    const fuCanvas = document.getElementById('fu-canvas');
-    const fuCtx = fuCanvas.getContext('2d');
 
-    function drawFuTexture() {
-      // 红色背景
-      fuCtx.fillStyle = '#c8392e';
-      fuCtx.fillRect(0, 0, 256, 256);
-
-      // 金色边框（双层）
-      fuCtx.strokeStyle = '#e8c878';
-      fuCtx.lineWidth = 10;
-      fuCtx.strokeRect(5, 5, 246, 246);
-      fuCtx.lineWidth = 4;
-      fuCtx.strokeRect(20, 20, 216, 216);
-
-      // 四角金点
-      fuCtx.fillStyle = '#e8c878';
+    // 福字贴纸（红底金字，倒贴=福到了）
+    (function drawFu() {
+      const c = document.getElementById('fu-canvas');
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, 256, 256);
+      ctx.fillStyle = '#c8392e';
+      ctx.fillRect(0, 0, 256, 256);
+      ctx.strokeStyle = '#e8c878';
+      ctx.lineWidth = 10; ctx.strokeRect(5, 5, 246, 246);
+      ctx.lineWidth = 4; ctx.strokeRect(20, 20, 216, 216);
+      ctx.fillStyle = '#e8c878';
       [[28,28],[228,28],[28,228],[228,228]].forEach(function(p) {
-        fuCtx.beginPath();
-        fuCtx.arc(p[0], p[1], 5, 0, Math.PI * 2);
-        fuCtx.fill();
+        ctx.beginPath(); ctx.arc(p[0], p[1], 5, 0, Math.PI * 2); ctx.fill();
       });
+      ctx.save();
+      ctx.translate(128, 128);
+      ctx.rotate(Math.PI);
+      ctx.fillStyle = '#e8c878';
+      ctx.font = 'bold 170px "Microsoft YaHei","PingFang SC",serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('福', 0, 4);
+      ctx.restore();
+    })();
 
-      // 金色"福"字（倒写=福到了）
-      fuCtx.save();
-      fuCtx.translate(128, 128);
-      fuCtx.rotate(Math.PI);  // 旋转180度=倒着写
-      fuCtx.fillStyle = '#e8c878';
-      fuCtx.font = 'bold 170px "Microsoft YaHei","PingFang SC",serif';
-      fuCtx.textAlign = 'center';
-      fuCtx.textBaseline = 'middle';
-      fuCtx.fillText('福', 0, 4);
-      fuCtx.restore();
-    }
+    // 圣诞帽（红色三角帽 + 白色绒边 + 白色球球）
+    (function drawHat() {
+      const c = document.getElementById('hat-canvas');
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, 256, 256);
 
-    drawFuTexture();
+      // 帽子主体（红色三角形，弯曲偏向右侧）
+      ctx.fillStyle = '#c8392e';
+      ctx.beginPath();
+      ctx.moveTo(40, 220);         // 左下
+      ctx.quadraticCurveTo(128, 180, 180, 60);  // 右侧弯曲线到顶部
+      ctx.lineTo(210, 80);         // 帽尖折弯
+      ctx.quadraticCurveTo(130, 140, 70, 220);  // 回到右下
+      ctx.closePath();
+      ctx.fill();
+
+      // 帽子高光
+      ctx.fillStyle = 'rgba(232,200,120,0.15)';
+      ctx.beginPath();
+      ctx.moveTo(60, 210);
+      ctx.quadraticCurveTo(120, 170, 170, 70);
+      ctx.lineTo(160, 70);
+      ctx.quadraticCurveTo(110, 170, 55, 210);
+      ctx.closePath();
+      ctx.fill();
+
+      // 白色绒边（帽檐）
+      ctx.fillStyle = '#f5f0e6';
+      ctx.beginPath();
+      ctx.ellipse(128, 220, 95, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 绒边纹理
+      ctx.fillStyle = 'rgba(200,200,200,0.2)';
+      for (var i = 0; i < 20; i++) {
+        var x = 40 + i * 9 + Math.random() * 4;
+        var y = 215 + Math.random() * 10;
+        ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // 帽尖白球球
+      ctx.fillStyle = '#f5f0e6';
+      ctx.beginPath();
+      ctx.arc(205, 72, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(200,200,200,0.15)';
+      ctx.beginPath();
+      ctx.arc(210, 76, 8, 0, Math.PI * 2);
+      ctx.fill();
+    })();
+
+    // 白胡子（蓬松白色扇形，覆盖下巴和两颊）
+    (function drawBeard() {
+      const c = document.getElementById('beard-canvas');
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, 256, 256);
+
+      // 主胡子形状（从顶部窄到底部宽的扇形）
+      ctx.fillStyle = '#f5f0e6';
+      ctx.beginPath();
+      ctx.moveTo(128, 20);                    // 顶部中心（鼻下）
+      ctx.quadraticCurveTo(60, 60, 45, 140);  // 左侧弧线
+      ctx.quadraticCurveTo(50, 200, 80, 240); // 左下
+      ctx.quadraticCurveTo(128, 250, 176, 240); // 底部
+      ctx.quadraticCurveTo(206, 200, 211, 140); // 右下
+      ctx.quadraticCurveTo(196, 60, 128, 20);  // 右侧弧线回顶
+      ctx.closePath();
+      ctx.fill();
+
+      // 胡子纹理（蓬松感）
+      ctx.fillStyle = 'rgba(220,220,220,0.3)';
+      for (var i = 0; i < 40; i++) {
+        var x = 60 + Math.random() * 136;
+        var y = 40 + Math.random() * 200;
+        var r = 4 + Math.random() * 8;
+        if (x > 50 && x < 206 && y > 25 && y < 245) {
+          ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+
+      // 胡子阴影
+      ctx.fillStyle = 'rgba(200,200,200,0.12)';
+      ctx.beginPath();
+      ctx.ellipse(128, 120, 70, 100, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 嘴部开口（V形缺口）
+      ctx.fillStyle = 'rgba(0,0,0,0.08)';
+      ctx.beginPath();
+      ctx.moveTo(128, 30);
+      ctx.lineTo(115, 70);
+      ctx.lineTo(128, 75);
+      ctx.lineTo(141, 70);
+      ctx.closePath();
+      ctx.fill();
+
+      // 胡须丝细节
+      ctx.strokeStyle = 'rgba(180,180,180,0.2)';
+      ctx.lineWidth = 1;
+      for (var j = 0; j < 15; j++) {
+        var sx = 70 + Math.random() * 116;
+        var sy = 50 + Math.random() * 180;
+        var ex = sx + (Math.random() - 0.5) * 20;
+        var ey = sy + 10 + Math.random() * 15;
+        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+      }
+    })();
 
     // ============================================================
-    // 2. 场景就绪后把 canvas 纹理贴到 a-image 上
+    // 2. 场景就绪后贴纹理
     // ============================================================
     const sceneEl = document.getElementById('face-scene');
-    const fuSticker = document.getElementById('fu-sticker');
+    const textures = {};
+
+    function applyTexture(elId, canvasId) {
+      const el = document.getElementById(elId);
+      const canvas = document.getElementById(canvasId);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
+      textures[elId] = texture;
+
+      function doApply() {
+        const mesh = el.getObject3D('mesh');
+        if (mesh) {
+          mesh.material.map = texture;
+          mesh.material.transparent = true;
+          mesh.material.needsUpdate = true;
+        } else {
+          setTimeout(doApply, 300);
+        }
+      }
+      doApply();
+    }
 
     sceneEl.addEventListener('loaded', function() {
-      // 用 canvas 创建 Three.js 纹理
-      const texture = new THREE.CanvasTexture(fuCanvas);
-      texture.needsUpdate = true;
-
-      // 获取 a-image 的 mesh，设置纹理
-      const mesh = fuSticker.getObject3D('mesh');
-      if (mesh) {
-        mesh.material.map = texture;
-        mesh.material.needsUpdate = true;
-      } else {
-        // mesh 还没就绪，等 render 一次后再试
-        setTimeout(function() {
-          const m = fuSticker.getObject3D('mesh');
-          if (m) {
-            m.material.map = texture;
-            m.material.needsUpdate = true;
-          }
-        }, 500);
-      }
+      applyTexture('deco-fu', 'fu-canvas');
+      applyTexture('deco-hat', 'hat-canvas');
+      applyTexture('deco-beard', 'beard-canvas');
     });
 
     // ============================================================
-    // 3. 面部识别事件
+    // 3. 装饰选择器
     // ============================================================
-    const faceAnchor = document.getElementById('face-anchor');
+    const decoBtns = document.querySelectorAll('.deco-btn');
+    const decoFu = document.getElementById('deco-fu');
+    const decoHat = document.getElementById('deco-hat');
+    const decoBeard = document.getElementById('deco-beard');
+    let currentDeco = 'fu';
+
+    function setDeco(name) {
+      currentDeco = name;
+      decoFu.setAttribute('visible', name === 'fu');
+      decoHat.setAttribute('visible', name === 'hat');
+      decoBeard.setAttribute('visible', name === 'beard');
+      decoBtns.forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.deco === name);
+      });
+    }
+
+    decoBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() { setDeco(btn.dataset.deco); });
+    });
+
+    // ============================================================
+    // 4. 自动缩放：用左右脸颊距离计算脸宽
+    // ============================================================
+    const anchorLeft = document.getElementById('anchor-left');
+    const anchorRight = document.getElementById('anchor-right');
+    const vL = new THREE.Vector3();
+    const vR = new THREE.Vector3();
+    let faceWidth = 0.12;  // 默认值
+
+    function updateFaceScale() {
+      if (!anchorLeft.object3D || !anchorRight.object3D) return;
+      anchorLeft.object3D.getWorldPosition(vL);
+      anchorRight.object3D.getWorldPosition(vR);
+      const dist = vL.distanceTo(vR);
+      if (dist > 0.01) {
+        faceWidth = dist;
+        // 福字：脸宽的 75%
+        decoFu.object3D.scale.setScalar(Math.max(0.5, Math.min(2.0, faceWidth / 0.12)));
+        // 帽子：脸宽的 120%
+        decoHat.object3D.scale.setScalar(Math.max(0.5, Math.min(2.0, faceWidth / 0.10)));
+        // 胡子：脸宽的 105%
+        decoBeard.object3D.scale.setScalar(Math.max(0.5, Math.min(2.0, faceWidth / 0.11)));
+      }
+    }
+
+    // 每帧检查脸宽（轻量级）
+    const tickFn = function() { updateFaceScale(); requestAnimationFrame(tickFn); };
+    setTimeout(function() { tickFn(); }, 2000);
+
+    // ============================================================
+    // 5. 面部识别事件
+    // ============================================================
+    const faceAnchor = document.getElementById('anchor-forehead');
     const hint = document.getElementById('hint');
     const fuRain = document.getElementById('fu-rain');
     let foundOnce = false;
 
     faceAnchor.addEventListener('targetFound', function() {
       foundOnce = true;
-      hint.textContent = '🧧 福星高照！北韵晋创祝您万事如意';
+      hint.textContent = '🧧 福星高照！选择喜欢的装饰吧~';
       hint.classList.add('tracked');
       fuRain.classList.add('show');
     });
@@ -244,12 +403,12 @@
     });
 
     // ============================================================
-    // 4. 福字飘落装饰
+    // 6. 福字飘落装饰
     // ============================================================
     (function makeFuRain() {
       const chars = ['福','禄','寿','喜','财','安','康','和'];
-      for (let i = 0; i < 12; i++) {
-        const s = document.createElement('span');
+      for (var i = 0; i < 12; i++) {
+        var s = document.createElement('span');
         s.textContent = chars[i % chars.length];
         s.style.left = (Math.random() * 100) + '%';
         s.style.fontSize = (18 + Math.random() * 16) + 'px';
@@ -260,7 +419,7 @@
     })();
 
     // ============================================================
-    // 5. 截图功能
+    // 7. 截图功能
     // ============================================================
     const btnShot = document.getElementById('btn-shot');
     const flash = document.getElementById('flash');
@@ -268,40 +427,32 @@
     btnShot.addEventListener('click', function() {
       flash.classList.add('show');
       setTimeout(function() { flash.classList.remove('show'); }, 300);
-
       try {
-        const canvas = sceneEl.components.screenshot.getCanvas('perspective');
-        const link = document.createElement('a');
+        var canvas = sceneEl.components.screenshot.getCanvas('perspective');
+        var link = document.createElement('a');
         link.href = canvas.toDataURL('image/png');
         link.download = 'bei-yun-fu-zhao.png';
         link.click();
         hint.textContent = '📸 福照已保存！分享好运吧~';
         setTimeout(function() {
-          if (foundOnce) hint.textContent = '🧧 福星高照！北韵晋创祝您万事如意';
+          if (foundOnce) hint.textContent = '🧧 福星高照！选择喜欢的装饰吧~';
         }, 2500);
       } catch(e) {
         hint.textContent = '截图失败，请稍后再试';
         setTimeout(function() {
-          if (foundOnce) hint.textContent = '🧧 福星高照！北韵晋创祝您万事如意';
+          if (foundOnce) hint.textContent = '🧧 福星高照！选择喜欢的装饰吧~';
           else hint.textContent = '😊 将脸对准摄像头…';
         }, 2000);
       }
     });
 
     // ============================================================
-    // 6. 加载完成：检测摄像头启动后立即隐藏 loading
+    // 8. 加载完成
     // ============================================================
     const loading = document.getElementById('loading');
-
-    function hideLoading() {
-      loading.classList.add('hidden');
-    }
-
-    // MindAR 场景就绪事件
+    function hideLoading() { loading.classList.add('hidden'); }
     sceneEl.addEventListener('arready', function() { hideLoading(); });
     sceneEl.addEventListener('loaded', function() { setTimeout(hideLoading, 500); });
-
-    // 兜底：8秒后强制隐藏
     setTimeout(hideLoading, 8000);
   </script>
 
