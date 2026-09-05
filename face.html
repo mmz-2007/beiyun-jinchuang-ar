@@ -9,14 +9,14 @@
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
 
   <style>
-    body { margin: 0; overflow: hidden; font-family: "PingFang SC","Microsoft YaHei",sans-serif; }
+    body { margin: 0; overflow: hidden; font-family: "PingFang SC","Microsoft YaHei",sans-serif; background: #000; }
     #loading {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: linear-gradient(160deg, #0e1116 0%, #1a2030 50%, #0e1116 100%);
       color: #e8e2d4; z-index: 100;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center; font-size: 16px;
-      transition: opacity 0.6s;
+      transition: opacity 0.4s;
     }
     #loading.hidden { opacity: 0; pointer-events: none; }
     #loading .load-logo {
@@ -30,9 +30,7 @@
       0%, 100% { transform: scale(1); opacity: 0.9; }
       50% { transform: scale(1.06); opacity: 1; }
     }
-    #loading .load-bricks {
-      display: flex; gap: 6px; margin-bottom: 16px;
-    }
+    #loading .load-bricks { display: flex; gap: 6px; margin-bottom: 16px; }
     #loading .load-bricks span {
       display: block; width: 12px; height: 12px; border-radius: 3px;
       animation: brickJump 1.2s ease-in-out infinite;
@@ -87,14 +85,12 @@
     .logo-badge:hover { opacity: 1; }
     .logo-badge img { width: 100%; display: block; }
 
-    /* 截图闪光 */
     #flash {
       position: fixed; inset: 0; z-index: 90; background: #fff;
       opacity: 0; pointer-events: none; transition: opacity 0.15s;
     }
     #flash.show { opacity: 0.8; }
 
-    /* 福字飘落装饰 */
     #fu-rain { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 0.8s; }
     #fu-rain.show { opacity: 1; }
     #fu-rain span {
@@ -107,6 +103,9 @@
       90% { opacity: 0.35; }
       100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
     }
+
+    /* 隐藏 A-Frame 的 VR 按钮 */
+    .a-enter-vr, .a-orientation-modal { display: none !important; }
   </style>
 </head>
 <body>
@@ -128,7 +127,7 @@
   </div>
 
   <!-- 底部提示条 -->
-  <div id="hint">😊 将脸对准前置摄像头…</div>
+  <div id="hint">😊 将脸对准摄像头…</div>
 
   <!-- 福字飘落装饰 -->
   <div id="fu-rain" aria-hidden="true"></div>
@@ -139,81 +138,113 @@
   <!-- 截图闪光 -->
   <div id="flash"></div>
 
-  <a-scene mindar-face="faceIndex: 0; maxTrack: 1" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" id="face-scene" loading-screen="enabled: false" embedded>
+  <!-- 隐藏的 canvas 用于生成福字纹理（不放 a-assets 里，避免预加载问题） -->
+  <canvas id="fu-canvas" width="256" height="256" style="display:none;"></canvas>
 
-    <a-camera active="false" position="0 0 0" look-controls="enabled: false"></a-camera>
+  <a-scene mindar-face="faceIndex: 0; maxTrack: 1" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" id="face-scene" loading-screen="enabled: false">
 
-    <a-assets>
-      <canvas id="fu-canvas" width="256" height="256"></canvas>
-    </a-assets>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <a-entity mindar-face-target="targetIndex: 0" id="face-anchor">
-      <a-plane id="fu-sticker" position="0 0.12 0" width="0.14" height="0.14"
-        material="src: #fu-canvas; transparent: true; side: double"
-        rotation="0 0 180">
-      </a-plane>
+    <a-entity mindar-face-target="targetIndex: 168" id="face-anchor">
+      <a-image id="fu-sticker" position="0 0 0.08" width="0.13" height="0.13"
+        rotation="0 0 0" material="transparent: true; side: double">
+      </a-image>
     </a-entity>
 
   </a-scene>
 
   <script>
     // ============================================================
-    // 生成"福"字贴纸纹理（红底金字，倒贴=福到了）
+    // 1. 生成"福"字贴纸纹理（红底金字，倒贴=福到了）
     // ============================================================
-    (function makeFuTexture() {
-      const canvas = document.getElementById('fu-canvas');
-      const ctx = canvas.getContext('2d');
+    const fuCanvas = document.getElementById('fu-canvas');
+    const fuCtx = fuCanvas.getContext('2d');
 
+    function drawFuTexture() {
       // 红色背景
-      ctx.fillStyle = '#c8392e';
-      ctx.fillRect(0, 0, 256, 256);
+      fuCtx.fillStyle = '#c8392e';
+      fuCtx.fillRect(0, 0, 256, 256);
 
       // 金色边框（双层）
-      ctx.strokeStyle = '#e8c878';
-      ctx.lineWidth = 10;
-      ctx.strokeRect(5, 5, 246, 246);
-      ctx.lineWidth = 4;
-      ctx.strokeRect(20, 20, 216, 216);
+      fuCtx.strokeStyle = '#e8c878';
+      fuCtx.lineWidth = 10;
+      fuCtx.strokeRect(5, 5, 246, 246);
+      fuCtx.lineWidth = 4;
+      fuCtx.strokeRect(20, 20, 216, 216);
 
       // 四角金点
-      ctx.fillStyle = '#e8c878';
-      [[28,28],[228,28],[28,228],[228,228]].forEach(([x,y]) => {
-        ctx.beginPath();
-        ctx.arc(x, y, 5, 0, Math.PI * 2);
-        ctx.fill();
+      fuCtx.fillStyle = '#e8c878';
+      [[28,28],[228,28],[28,228],[228,228]].forEach(function(p) {
+        fuCtx.beginPath();
+        fuCtx.arc(p[0], p[1], 5, 0, Math.PI * 2);
+        fuCtx.fill();
       });
 
-      // 金色"福"字（正写，plane rotation 180 让它倒着显示=福到了）
-      ctx.fillStyle = '#e8c878';
-      ctx.font = 'bold 170px "Microsoft YaHei","PingFang SC",serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('福', 128, 132);
-    })();
+      // 金色"福"字（倒写=福到了）
+      fuCtx.save();
+      fuCtx.translate(128, 128);
+      fuCtx.rotate(Math.PI);  // 旋转180度=倒着写
+      fuCtx.fillStyle = '#e8c878';
+      fuCtx.font = 'bold 170px "Microsoft YaHei","PingFang SC",serif';
+      fuCtx.textAlign = 'center';
+      fuCtx.textBaseline = 'middle';
+      fuCtx.fillText('福', 0, 4);
+      fuCtx.restore();
+    }
+
+    drawFuTexture();
 
     // ============================================================
-    // 面部识别事件
+    // 2. 场景就绪后把 canvas 纹理贴到 a-image 上
+    // ============================================================
+    const sceneEl = document.getElementById('face-scene');
+    const fuSticker = document.getElementById('fu-sticker');
+
+    sceneEl.addEventListener('loaded', function() {
+      // 用 canvas 创建 Three.js 纹理
+      const texture = new THREE.CanvasTexture(fuCanvas);
+      texture.needsUpdate = true;
+
+      // 获取 a-image 的 mesh，设置纹理
+      const mesh = fuSticker.getObject3D('mesh');
+      if (mesh) {
+        mesh.material.map = texture;
+        mesh.material.needsUpdate = true;
+      } else {
+        // mesh 还没就绪，等 render 一次后再试
+        setTimeout(function() {
+          const m = fuSticker.getObject3D('mesh');
+          if (m) {
+            m.material.map = texture;
+            m.material.needsUpdate = true;
+          }
+        }, 500);
+      }
+    });
+
+    // ============================================================
+    // 3. 面部识别事件
     // ============================================================
     const faceAnchor = document.getElementById('face-anchor');
     const hint = document.getElementById('hint');
     const fuRain = document.getElementById('fu-rain');
     let foundOnce = false;
 
-    faceAnchor.addEventListener('targetFound', () => {
+    faceAnchor.addEventListener('targetFound', function() {
       foundOnce = true;
       hint.textContent = '🧧 福星高照！北韵晋创祝您万事如意';
       hint.classList.add('tracked');
       fuRain.classList.add('show');
     });
 
-    faceAnchor.addEventListener('targetLost', () => {
-      hint.textContent = '😊 将脸对准前置摄像头…';
+    faceAnchor.addEventListener('targetLost', function() {
+      hint.textContent = '😊 将脸对准摄像头…';
       hint.classList.remove('tracked');
       fuRain.classList.remove('show');
     });
 
     // ============================================================
-    // 福字飘落装饰
+    // 4. 福字飘落装饰
     // ============================================================
     (function makeFuRain() {
       const chars = ['福','禄','寿','喜','财','安','康','和'];
@@ -229,19 +260,15 @@
     })();
 
     // ============================================================
-    // 截图功能：保存带福字的自拍
+    // 5. 截图功能
     // ============================================================
     const btnShot = document.getElementById('btn-shot');
     const flash = document.getElementById('flash');
 
-    btnShot.addEventListener('click', () => {
-      const sceneEl = document.getElementById('face-scene');
-
-      // 闪光效果
+    btnShot.addEventListener('click', function() {
       flash.classList.add('show');
-      setTimeout(() => flash.classList.remove('show'), 300);
+      setTimeout(function() { flash.classList.remove('show'); }, 300);
 
-      // A-Frame screenshot
       try {
         const canvas = sceneEl.components.screenshot.getCanvas('perspective');
         const link = document.createElement('a');
@@ -249,25 +276,33 @@
         link.download = 'bei-yun-fu-zhao.png';
         link.click();
         hint.textContent = '📸 福照已保存！分享好运吧~';
-        setTimeout(() => {
+        setTimeout(function() {
           if (foundOnce) hint.textContent = '🧧 福星高照！北韵晋创祝您万事如意';
         }, 2500);
       } catch(e) {
         hint.textContent = '截图失败，请稍后再试';
-        setTimeout(() => {
+        setTimeout(function() {
           if (foundOnce) hint.textContent = '🧧 福星高照！北韵晋创祝您万事如意';
-          else hint.textContent = '😊 将脸对准前置摄像头…';
+          else hint.textContent = '😊 将脸对准摄像头…';
         }, 2000);
       }
     });
 
     // ============================================================
-    // 加载完成
+    // 6. 加载完成：检测摄像头启动后立即隐藏 loading
     // ============================================================
     const loading = document.getElementById('loading');
-    window.addEventListener('load', () => {
-      setTimeout(() => loading.classList.add('hidden'), 3500);
-    });
+
+    function hideLoading() {
+      loading.classList.add('hidden');
+    }
+
+    // MindAR 场景就绪事件
+    sceneEl.addEventListener('arready', function() { hideLoading(); });
+    sceneEl.addEventListener('loaded', function() { setTimeout(hideLoading, 500); });
+
+    // 兜底：8秒后强制隐藏
+    setTimeout(hideLoading, 8000);
   </script>
 
 </body>
