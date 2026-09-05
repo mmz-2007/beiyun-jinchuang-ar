@@ -370,25 +370,41 @@
       // 在 MindAR 调用 getUserMedia 之前覆写
       let _resolveStream;
       const _streamPromise = new Promise(r => _resolveStream = r);
-      const _origGUM = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
       navigator.mediaDevices.getUserMedia = async (c) => _streamPromise;
 
-      // 显示上传提示
-      const _loadText = document.querySelector('#loading .load-text');
-      if (_loadText) _loadText.textContent = '🖼 请选择产品图片…';
-      document.getElementById('hint').textContent = '🖼 请选择一张产品卡片照片';
+      // 隐藏 loading 界面，显示上传选择按钮（手机必须用户手动点击才能弹出文件选择器）
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('hint').textContent = '🖼 请点击下方按钮选择产品图片';
 
-      // 自动弹出文件选择器
-      setTimeout(() => _fileInput.click(), 600);
+      // 创建一个可见的上传按钮覆盖层
+      const _uploadOverlay = document.createElement('div');
+      _uploadOverlay.id = 'upload-overlay';
+      _uploadOverlay.style.cssText = 'position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#0e1116 0%,#1a2030 50%,#0e1116 100%);';
+      _uploadOverlay.innerHTML =
+        '<div style="width:120px;margin-bottom:20px;background:rgba(245,240,230,0.95);border-radius:14px;padding:8px 12px;">' +
+        '<img src="./assets/logo.png" alt="北韵晋创" style="width:100%;display:block;"></div>' +
+        '<button id="pick-btn" style="background:#d4a24e;color:#101418;border:none;padding:16px 40px;border-radius:999px;font-size:18px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(212,162,78,0.4);">' +
+        '🖼 点击选择产品图片</button>' +
+        '<div style="margin-top:16px;color:#8a9099;font-size:13px;">支持拍照或从相册选择</div>';
+      document.body.appendChild(_uploadOverlay);
+
+      // 用户点击按钮 → 触发文件选择器（在用户手势中，手机浏览器允许）
+      document.getElementById('pick-btn').addEventListener('click', function() {
+        _fileInput.click();
+      });
 
       _fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
+        // 移除上传覆盖层，显示分析中
+        _uploadOverlay.remove();
+
         const _lt2 = document.querySelector('#loading .load-text');
         if (_lt2) _lt2.textContent = '⏳ 正在分析图片…';
         document.getElementById('loading').classList.remove('hidden');
         document.getElementById('loading').style.display = 'flex';
+        document.getElementById('hint').textContent = '⏳ 正在分析图片…';
 
         const img = new Image();
         img.onload = () => {
