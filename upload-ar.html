@@ -111,68 +111,59 @@
     @keyframes floatUp { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 8% { opacity: 0.28; } 85% { opacity: 0.28; } 100% { transform: translateY(-115vh) rotate(340deg); opacity: 0; } }
 
     .a-enter-vr, .a-orientation-modal { display: none !important; }
+
+    #img-canvas {
+      position: absolute; top: 0; left: 0; z-index: -2;
+      width: 100%; height: 100%; object-fit: contain;
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-  <!-- 上传界面 -->
   <div id="upload-ui">
     <div class="logo"><img src="./assets/logo.png" alt="北韵晋创"></div>
-    <h2>🖼 上传图片AR识别</h2>
+    <h2>上传图片AR识别</h2>
     <p>拍一张产品卡片照片或从相册选择，系统将自动扫描识别并展示AR效果</p>
-    <button class="pick-btn" id="pick-btn">🖼 点击选择图片</button>
-    <a href="./index.html" class="back-link">← 返回首页</a>
+    <button class="pick-btn" id="pick-btn">点击选择图片</button>
+    <a href="./index.html" class="back-link">返回首页</a>
   </div>
   <input type="file" id="file-input" accept="image/*" style="display:none">
 
-  <!-- 分析中加载界面 -->
   <div id="loading">
     <div class="load-bricks"><span></span><span></span><span></span><span></span><span></span></div>
-    <div class="load-text" id="load-text">正在扫描识别…</div>
+    <div class="load-text" id="load-text">正在加载AR引擎…</div>
   </div>
 
-  <!-- 顶部操作条 -->
   <div id="bar" style="display:none;">
-    <a href="./index.html">🏠 首页</a>
-    <button id="btn-reupload">🖼 重新上传</button>
-    <a href="./ar.html">📷 摄像头扫描</a>
-    <a href="./viewer.html">🖥 3D查看</a>
+    <a href="./index.html">首页</a>
+    <button id="btn-reupload">重新上传</button>
+    <a href="./ar.html">摄像头扫描</a>
+    <a href="./viewer.html">3D查看</a>
   </div>
 
-  <!-- 提示条 -->
   <div id="hint" style="display:none;">正在扫描图片中的产品…</div>
 
-  <!-- 产品信息面板 -->
   <div id="panel">
     <div class="grabber"></div>
-    <div class="p-brand">北 韵 晋 创 · 文 化 积 木</div>
+    <div class="p-brand">北 韵 晋 创 · 文 创 积 木</div>
     <div class="p-name" id="p-name">产品名称</div>
     <div class="p-tag" id="p-tag">主题标签</div>
     <div class="p-brief" id="p-brief">产品简介</div>
     <div class="p-desc" id="p-desc">详细介绍</div>
     <div class="p-btns">
-      <button id="btn-voice">🔊 语音介绍</button>
-      <button id="btn-share">📸 分享</button>
-      <button id="btn-more">查看更多 ⌄</button>
+      <button id="btn-voice">语音介绍</button>
+      <button id="btn-share">分享</button>
+      <button id="btn-more">查看更多</button>
     </div>
   </div>
 
-  <!-- 积木装饰 -->
   <div id="deco" aria-hidden="true"></div>
-
-  <!-- Logo水印 -->
   <div class="logo-badge" id="logo-badge" style="display:none;"><img src="./assets/logo.png" alt="北韵晋创"></div>
-
-  <!-- 隐藏canvas用于生成视频流 -->
-  <canvas id="img-canvas" style="display:none;"></canvas>
-
-  <!-- A-Frame场景容器（动态创建） -->
+  <canvas id="img-canvas"></canvas>
   <div id="scene-host"></div>
 
   <script>
-    // ============================================================
-    // 产品信息（与 ar.html 保持一致）
-    // ============================================================
     const PRODUCT_INFO = [
       { name: '大同积木字', tag: '古都 · 云冈',
         brief: '北魏平城古都，云冈石窟佛韵，105块积木拼出「大同」。',
@@ -243,7 +234,6 @@
     const imgCanvas = document.getElementById('img-canvas');
 
     let sceneEl = null;
-    let sceneReady = false;
     let activeTargets = new Set();
     let foundOnce = new Set();
     let panelTarget = -1;
@@ -268,90 +258,82 @@
     });
 
     // ============================================================
-    // 2. 文件选择后：创建canvas视频流 → 覆写getUserMedia → 动态创建MindAR场景
+    // 2. 文件选择后：绘制图片到canvas → 覆写getUserMedia → 创建场景
+    //    核心改进：不使用captureStream，而是在arready后直接将canvas
+    //    替换为Controller的输入（drawImage支持canvas元素）
     // ============================================================
     fileInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
 
-      // 隐藏上传界面，显示加载
       uploadUI.style.display = 'none';
       loading.classList.add('show');
       loadText.textContent = '正在加载图片…';
 
       const img = new Image();
       img.onload = function() {
-        // 将图片绘制到canvas，尺寸适配MindAR期望的1280x960
+        // 绘制图片到canvas（1280x960适配MindAR输入）
         const cw = 1280, ch = 960;
         imgCanvas.width = cw;
         imgCanvas.height = ch;
+        imgCanvas.videoWidth = cw;
+        imgCanvas.videoHeight = ch;
         const ctx = imgCanvas.getContext('2d');
-
-        // 居中绘制，保持宽高比
         const scale = Math.max(cw / img.width, ch / img.height);
         const dw = img.width * scale;
         const dh = img.height * scale;
         const dx = (cw - dw) / 2;
         const dy = (ch - dh) / 2;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, cw, ch);
+        ctx.drawImage(img, dx, dy, dw, dh);
 
-        function drawFrame() {
-          ctx.fillStyle = '#000';
-          ctx.fillRect(0, 0, cw, ch);
-          ctx.drawImage(img, dx, dy, dw, dh);
-          requestAnimationFrame(drawFrame);
-        }
-        drawFrame();
+        loadText.textContent = '正在启动AR引擎…';
 
-        // 获取canvas视频流
-        let stream = null;
-        try {
-          stream = imgCanvas.captureStream(30);
-        } catch (err) {
-          loadText.textContent = '浏览器不支持图片扫描，请用摄像头扫描';
-          hint.style.display = 'block';
-          hint.textContent = '⚠️ 当前浏览器不支持图片扫描，请使用摄像头扫描模式';
-          hint.classList.add('error');
-          loading.classList.remove('show');
-          bar.style.display = 'flex';
-          return;
-        }
-
-        loadText.textContent = '正在扫描识别…';
-
-        // 覆写 getUserMedia —— MindAR 会调用这个方法获取视频流
+        // 覆写getUserMedia：返回空MediaStream + 派发fake loadedmetadata
+        // 让MindAR初始化Controller和加载targets，无需真实摄像头
         navigator.mediaDevices.getUserMedia = async function(constraints) {
+          var stream = new MediaStream();
+          setTimeout(function() {
+            var videos = document.querySelectorAll('video');
+            var video = videos[videos.length - 1];
+            if (!video) return;
+            try {
+              Object.defineProperty(video, 'videoWidth', { get: function() { return 1280; }, configurable: true });
+              Object.defineProperty(video, 'videoHeight', { get: function() { return 960; }, configurable: true });
+            } catch (err) {}
+            setTimeout(function() {
+              video.dispatchEvent(new Event('loadedmetadata'));
+            }, 50);
+          }, 10);
           return stream;
         };
 
-        // 显示UI元素
         bar.style.display = 'flex';
         hint.style.display = 'block';
-        hint.textContent = '🔍 正在扫描图片中的产品…';
+        hint.textContent = '正在扫描图片中的产品…';
+        hint.classList.remove('error');
         logoBadge.style.display = 'block';
 
-        // 重新上传按钮
         document.getElementById('btn-reupload').addEventListener('click', function() {
           location.reload();
         });
 
-        // 动态创建 A-Frame 场景
         createScene();
       };
       img.src = URL.createObjectURL(file);
     });
 
     // ============================================================
-    // 3. 动态创建 MindAR A-Frame 场景
+    // 3. 创建 A-Frame + MindAR 场景
     // ============================================================
     function createScene() {
-      // 构建场景HTML
-      let sceneHTML = '<a-scene mindar-image="imageTargetSrc: ./assets/targets.mind; maxTrack: 3; filterMinCF: 0.1; filterBeta: 10" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" loading-screen="enabled: false" embedded>';
+      var sceneHTML = '<a-scene mindar-image="imageTargetSrc: ./assets/targets.mind; maxTrack: 3; filterMinCF: 0.1; filterBeta: 10" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" loading-screen="enabled: false" embedded>';
 
       sceneHTML += '<a-camera position="0 0 0" look-controls="enabled: false">';
       sceneHTML += '<a-cursor fuse="false" raycaster="objects: [data-clickable]; far: 10000" id="cursor" visible="true" material="color: #d4a24e; shader: flat" geometry="radiusInner: 0.005; radiusOuter: 0.01; segments: 24; primitive: ring" position="0 0 -1" scale="2 2 2"></a-cursor>';
       sceneHTML += '</a-camera>';
 
-      // 13个产品锚点
       for (var i = 0; i < TOTAL; i++) {
         sceneHTML += '<a-entity id="anchor-' + i + '" mindar-image-target="targetIndex: ' + i + '">';
         sceneHTML += '<a-entity id="modelwrap-' + i + '" gltf-model="url(./assets/model_' + String(i+1).padStart(2,'0') + '.glb)" scale="0.8 0.8 0.8" position="0 -0.1 0" data-clickable data-idx="' + i + '" class="clickable">';
@@ -361,67 +343,86 @@
       }
 
       sceneHTML += '</a-scene>';
-
       sceneHost.innerHTML = sceneHTML;
       sceneEl = sceneHost.querySelector('a-scene');
 
-      // 场景加载完成
-      sceneEl.addEventListener('loaded', function() {
-        sceneReady = true;
-      });
+      sceneEl.addEventListener('loaded', function() {});
 
-      // MindAR 就绪
-      sceneEl.addEventListener('arready', function() {
+      // arready：MindAR初始化完成，此时Controller已创建并加载了targets
+      // 关键步骤：停止处理空白视频帧 → 用canvas替换video → 重新启动处理
+      sceneEl.addEventListener('arready', async function() {
+        var system = sceneEl.systems['mindar-image'];
+        if (system && system.controller) {
+          // 1. 停止当前处理循环（处理的是空白视频帧）
+          system.controller.stopProcessVideo();
+
+          // 2. 等待旧循环退出
+          await new Promise(function(r) { setTimeout(r, 300); });
+
+          // 3. 隐藏空白video元素
+          if (system.video && system.video.style) {
+            system.video.style.display = 'none';
+          }
+
+          // 4. 显示canvas作为背景（显示上传的图片）
+          imgCanvas.style.display = 'block';
+
+          // 5. 用canvas替换video引用
+          system.video = imgCanvas;
+
+          // 6. 重新启动处理循环（这次处理canvas = 上传的图片）
+          system.controller.processVideo(imgCanvas);
+        }
+
         loading.classList.remove('show');
-        hint.textContent = '🔍 MindAR已就绪，正在扫描图片…';
+        hint.textContent = '正在扫描图片中的产品…';
         setupTargetEvents();
 
-        // 15秒超时：如果没识别到任何产品
         scanTimeout = setTimeout(function() {
           if (foundOnce.size === 0) {
-            hint.textContent = '⚠️ 未识别到产品，请换一张更清晰的产品图片，或使用摄像头扫描';
+            hint.textContent = '未识别到产品，请换一张更清晰的产品图片';
             hint.classList.add('error');
           }
-        }, 15000);
+        }, 20000);
       });
 
-      // 兜底：8秒后强制隐藏加载界面
       setTimeout(function() {
         loading.classList.remove('show');
-      }, 8000);
+      }, 12000);
     }
 
     // ============================================================
-    // 4. 绑定目标识别事件（与 ar.html 逻辑一致）
+    // 4. 绑定目标识别事件
     // ============================================================
     function setupTargetEvents() {
-      const anchors = [], modelwraps = [];
-      for (let i = 0; i < TOTAL; i++) {
-        anchors[i] = document.getElementById('anchor-' + i);
-        modelwraps[i] = document.getElementById('modelwrap-' + i);
+      var anchors = [], modelwraps = [];
+      for (var i = 0; i < TOTAL; i++) {
+        (function(i) {
+          anchors[i] = document.getElementById('anchor-' + i);
+          modelwraps[i] = document.getElementById('modelwrap-' + i);
 
-        anchors[i].addEventListener('targetFound', function() {
-          activeTargets.add(i);
-          foundOnce.add(i);
-          if (scanTimeout) { clearTimeout(scanTimeout); scanTimeout = null; }
-          stopVoice();
-          showPanel(i);
-          updateHint();
-        });
+          anchors[i].addEventListener('targetFound', function() {
+            activeTargets.add(i);
+            foundOnce.add(i);
+            if (scanTimeout) { clearTimeout(scanTimeout); scanTimeout = null; }
+            stopVoice();
+            showPanel(i);
+            updateHint();
+          });
 
-        anchors[i].addEventListener('targetLost', function() {
-          activeTargets.delete(i);
-          var remaining = [...activeTargets].sort(function(a,b){return a-b;});
-          if (remaining.length > 0) {
-            showPanel(remaining[remaining.length - 1]);
-          } else {
-            hidePanel();
-          }
-          updateHint();
-        });
+          anchors[i].addEventListener('targetLost', function() {
+            activeTargets.delete(i);
+            var remaining = Array.from(activeTargets).sort(function(a,b){return a-b;});
+            if (remaining.length > 0) {
+              showPanel(remaining[remaining.length - 1]);
+            } else {
+              hidePanel();
+            }
+            updateHint();
+          });
+        })(i);
       }
 
-      // 点击模型弹面板
       var cursorEl = document.getElementById('cursor');
       if (cursorEl) {
         cursorEl.addEventListener('click', function(e) {
@@ -447,7 +448,7 @@
       pBrief.textContent = p.brief;
       pDesc.textContent = p.desc;
       pDesc.classList.remove('show');
-      btnMore.textContent = '查看更多 ⌄';
+      btnMore.textContent = '查看更多';
       panel.classList.add('show');
       deco.classList.add('show');
       hint.style.opacity = '0';
@@ -462,24 +463,24 @@
     }
 
     function updateHint() {
-      var list = [...activeTargets].sort(function(a,b){return a-b;});
+      var list = Array.from(activeTargets).sort(function(a,b){return a-b;});
       if (list.length === 0) {
-        hint.textContent = '🔍 继续扫描或上传新图片';
+        hint.textContent = '继续扫描或上传新图片';
         hint.classList.remove('tracked');
       } else {
         var names = list.map(function(i) { return PRODUCT_INFO[i] ? PRODUCT_INFO[i].name : ('产品' + (i+1)); });
-        hint.textContent = '✅ 已识别「' + names.join('、') + '」';
+        hint.textContent = '已识别「' + names.join('、') + '」';
         hint.classList.add('tracked');
       }
     }
 
     // ============================================================
-    // 6. 语音播报（MP3优先 → TTS兜底）
+    // 6. 语音播报
     // ============================================================
     function stopVoice() {
       voicePlaying = false;
       btnVoice.classList.remove('playing');
-      btnVoice.textContent = '🔊 语音介绍';
+      btnVoice.textContent = '语音介绍';
       if (audioEl) {
         try { audioEl.pause(); audioEl.currentTime = 0; } catch (e) {}
         audioEl = null;
@@ -503,8 +504,8 @@
       }
       voicePlaying = false;
       btnVoice.classList.remove('playing');
-      btnVoice.textContent = '⚠️ 语音文件未配置';
-      setTimeout(function() { btnVoice.textContent = '🔊 语音介绍'; }, 2500);
+      btnVoice.textContent = '语音文件未配置';
+      setTimeout(function() { btnVoice.textContent = '语音介绍'; }, 2500);
     }
 
     btnVoice.addEventListener('click', function() {
@@ -515,7 +516,7 @@
       fallbackDone = false;
       voicePlaying = true;
       btnVoice.classList.add('playing');
-      btnVoice.textContent = '⏹ 停止播放';
+      btnVoice.textContent = '停止播放';
       audioEl = new Audio('./assets/audio/audio_' + nn + '.mp3');
       audioEl.onended = function() { stopVoice(); };
       audioEl.onerror = function() { fallbackTTS(p.voice); };
@@ -524,7 +525,7 @@
 
     btnMore.addEventListener('click', function() {
       var open = pDesc.classList.toggle('show');
-      btnMore.textContent = open ? '收起介绍 ⌃' : '查看更多 ⌄';
+      btnMore.textContent = open ? '收起介绍' : '查看更多';
     });
 
     // ============================================================
@@ -539,8 +540,8 @@
       if (navigator.share) {
         try { await navigator.share({ title: shareTitle, text: shareText, url: shareUrl }); return; } catch (e) {}
       }
-      try { await navigator.clipboard.writeText(shareUrl); btnShare.textContent = '✅ 链接已复制'; setTimeout(function() { btnShare.textContent = '📸 分享'; }, 2000); }
-      catch (e) { btnShare.textContent = '⚠️ 请手动分享'; setTimeout(function() { btnShare.textContent = '📸 分享'; }, 2000); }
+      try { await navigator.clipboard.writeText(shareUrl); btnShare.textContent = '链接已复制'; setTimeout(function() { btnShare.textContent = '分享'; }, 2000); }
+      catch (e) { btnShare.textContent = '请手动分享'; setTimeout(function() { btnShare.textContent = '分享'; }, 2000); }
     });
 
     // ============================================================
