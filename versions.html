@@ -66,11 +66,22 @@
     <div class="card">
       <div class="badge b-current">当前</div>
       <div class="info">
-        <h2>v1.9 多目标追踪 + 点击交互 + 品牌化UI<span class="tag">最新</span></h2>
+        <h2>v1.9.2 上传图片AR — canvas直传<span class="tag">最新</span></h2>
+        <div class="date">2026-09-06 · commit 32dabc4</div>
+        <p>彻底重写上传图片AR识别方案：放弃captureStream()（手机不支持），改用canvas直传——覆写getUserMedia返回空MediaStream让MindAR正常初始化Controller和加载targets，arready后停止处理空白视频帧，用canvas替换video引用并重启controller.processVideo(canvas)，MindAR的InputLoader.loadInput()内部调用Canvas2D.drawImage()原生支持canvas元素。修复系统名bug（mindar-image-system）。v1.9全部功能保留：多目标追踪、点击交互、品牌化UI、扫脸戴福彩蛋。</p>
+      </div>
+      <a class="go" href="./upload-ar.html">体验 →</a>
+    </div>
+
+    <!-- v1.9 -->
+    <div class="card">
+      <div class="badge b-old">v1.9</div>
+      <div class="info">
+        <h2>多目标追踪 + 点击交互 + 品牌化UI + 扫脸戴福</h2>
         <div class="date">2026-09-05</div>
         <p>多目标同时追踪（maxTrack: 3，可同时识别最多3款产品，每款独立管理锁定/面板/手势）；点击模型弹出信息面板（A-Frame cursor + raycaster，电脑端鼠标/移动端触摸均可点击）；品牌化加载动画（Logo呼吸 + 积木五色跳动 + "正在寻找晋韵…"文案）；锁定逻辑从单模型互斥改为 Set 多模型独立；新增扫脸戴福彩蛋页面（face.html，MindAR Face Tracking，前置摄像头识别人脸贴倒"福"贴纸，支持截图保存）。</p>
       </div>
-      <a class="go" href="./ar.html">体验 →</a>
+      <a class="go ghost" href="./ar.html">体验 →</a>
     </div>
 
     <!-- v1.8.1 -->

@@ -351,7 +351,7 @@
       // arready：MindAR初始化完成，此时Controller已创建并加载了targets
       // 关键步骤：停止处理空白视频帧 → 用canvas替换video → 重新启动处理
       sceneEl.addEventListener('arready', async function() {
-        var system = sceneEl.systems['mindar-image'];
+        var system = sceneEl.systems['mindar-image-system'];
         if (system && system.controller) {
           // 1. 停止当前处理循环（处理的是空白视频帧）
           system.controller.stopProcessVideo();
@@ -367,7 +367,10 @@
           // 4. 显示canvas作为背景（显示上传的图片）
           imgCanvas.style.display = 'block';
 
-          // 5. 用canvas替换video引用
+          // 5. 用canvas替换video引用，保留videoWidth/videoHeight
+          imgCanvas.videoWidth = 1280;
+          imgCanvas.videoHeight = 960;
+          imgCanvas.pause = function() {}; // canvas没有pause，加个空函数防报错
           system.video = imgCanvas;
 
           // 6. 重新启动处理循环（这次处理canvas = 上传的图片）
