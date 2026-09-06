@@ -367,11 +367,11 @@
     const _btnUpload = document.getElementById('btn-upload');
 
     if (_isUpload) {
-      // v1.9.1 上传模式：不走 MindAR，直接跳转到 viewer.html 带上传参数
-      location.href = './viewer.html?upload=1';
+      // 上传模式跳转到独立的图片AR识别页面
+      location.href = './upload-ar.html';
     } else {
-      // 正常模式：点击上传按钮 → 跳转到上传模式
-      _btnUpload.addEventListener('click', () => location.href = './ar.html?upload=1');
+      // 正常模式：点击上传按钮 → 跳转到上传AR识别页
+      _btnUpload.addEventListener('click', () => location.href = './upload-ar.html');
     }
 
     // ============================================================

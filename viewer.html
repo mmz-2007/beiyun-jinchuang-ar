@@ -513,85 +513,9 @@
     }
 
     // ============================================================
-    // v1.9.1 上传图片模式：用户上传产品图片后选产品看3D
+    // 上传模式已移至 upload-ar.html，这里始终是3D查看模式
     // ============================================================
-    const _isUploadMode = new URLSearchParams(location.search).get('upload') === '1';
-
-    if (_isUploadMode) {
-      // 隐藏3D场景，显示上传界面
-      loadingEl.style.display = 'none';
-      document.getElementById('prod-bar').style.display = 'none';
-      hintEl.style.display = 'none';
-
-      const uploadOverlay = document.createElement('div');
-      uploadOverlay.id = 'upload-mode';
-      uploadOverlay.style.cssText = 'position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#0e1116 0%,#1a2030 50%,#0e1116 100%);padding:20px;';
-      uploadOverlay.innerHTML =
-        '<div style="width:120px;margin-bottom:20px;background:rgba(245,240,230,0.95);border-radius:14px;padding:8px 12px;">' +
-        '<img src="./assets/logo.png" alt="北韵晋创" style="width:100%;display:block;"></div>' +
-        '<div style="color:#e8e2d4;font-size:18px;font-weight:600;margin-bottom:8px;">🖼 上传产品图片</div>' +
-        '<div style="color:#8a9099;font-size:13px;margin-bottom:24px;text-align:center;max-width:280px;line-height:1.6;">拍一张产品卡片照片或从相册选择，上传后选择对应产品即可查看3D模型</div>' +
-        '<button id="upload-pick-btn" style="background:#d4a24e;color:#101418;border:none;padding:16px 40px;border-radius:999px;font-size:18px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(212,162,78,0.4);">🖼 点击选择图片</button>' +
-        '<a href="./index.html" style="margin-top:20px;color:#8a9099;font-size:14px;text-decoration:none;">← 返回首页</a>';
-      document.body.appendChild(uploadOverlay);
-
-      const uploadInput = document.createElement('input');
-      uploadInput.type = 'file';
-      uploadInput.accept = 'image/*';
-      uploadInput.style.display = 'none';
-      document.body.appendChild(uploadInput);
-
-      document.getElementById('upload-pick-btn').addEventListener('click', function() {
-        uploadInput.click();
-      });
-
-      uploadInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const url = URL.createObjectURL(file);
-        uploadOverlay.remove();
-
-        // 显示上传的图片作为背景
-        const bgImg = document.createElement('img');
-        bgImg.src = url;
-        bgImg.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;';
-        bgImg.id = 'uploaded-bg';
-        document.body.appendChild(bgImg);
-
-        // 显示半透明遮罩让3D模型更突出
-        const shade = document.createElement('div');
-        shade.style.cssText = 'position:fixed;inset:0;background:rgba(14,17,22,0.55);z-index:2;';
-        document.body.appendChild(shade);
-
-        // 显示产品选择条
-        const prodBar2 = document.getElementById('prod-bar');
-        prodBar2.style.display = 'flex';
-        prodBar2.style.zIndex = '60';
-
-        // 显示提示
-        hintEl.style.display = 'block';
-        hintEl.textContent = '👆 请在上方选择你拍的产品，即可查看3D模型';
-        hintEl.style.zIndex = '60';
-
-        // 显示顶部操作栏
-        document.getElementById('bar').style.zIndex = '60';
-
-        // 添加返回上传按钮
-        const btnReupload = document.createElement('button');
-        btnReupload.textContent = '🖼 重新上传';
-        btnReupload.addEventListener('click', function() {
-          location.href = './viewer.html?upload=1';
-        });
-        document.getElementById('bar').appendChild(btnReupload);
-
-        // 显示第一个产品
-        showProduct(0);
-      });
-    } else {
-      // 默认显示第 1 个产品
-      showProduct(0);
-    }
+    showProduct(0);
 
     // ---------- 自动旋转开关 ----------
     let autoRotate = true;
